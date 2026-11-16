@@ -20,6 +20,8 @@ namespace ScrollShot
         CancellationTokenSource _cts;
         DispatcherTimer _countdown;
         int _left;
+        bool _useMsg;
+        IntPtr _target;
         bool _running;
         bool _closing;
 
@@ -32,12 +34,22 @@ namespace ScrollShot
             _st = new ScrollStitcher(s);
             InitializeComponent();
             ChkTop.IsChecked = s.ScrollFromTop;
-            if (s.ScrollMode == "manual") BtnManual.IsDefault = true; else BtnAuto.IsDefault = true;
+            var accent = TryFindResource("AccentButtonStyle") as Style;
+            if (s.ScrollMode == "manual")
+            {
+                BtnManual.IsDefault = true;
+                if (accent != null) BtnManual.Style = accent;
+            }
+            else
+            {
+                BtnAuto.IsDefault = true;
+                if (accent != null) BtnAuto.Style = accent;
+            }
             Loaded += (a, b) =>
             {
                 PlaceNear();
                 if (_s.ScrollCountdownSec > 0) StartCountdown();
-                else Status.Text = "آماده است. حالت را انتخاب کنید.";
+                else Status.Text = Loc.T("bar_ready");
             };
             Closed += (a, b) =>
             {
@@ -90,7 +102,7 @@ namespace ScrollShot
         void StartCountdown()
         {
             _left = _s.ScrollCountdownSec;
-            BtnAuto.Content = "شروع همین الان";
+            BtnAuto.Content = Loc.T("bar_now");
             ShowCountdown();
             _countdown = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _countdown.Tick += (a, b) =>
@@ -111,8 +123,8 @@ namespace ScrollShot
 
         void ShowCountdown()
         {
-            string mode = _s.ScrollMode == "manual" ? "دستی" : "خودکار";
-            Status.Text = "شروع " + mode + " تا " + _left + " ثانیه دیگر… ابتدا ناحیه را در جای دلخواه قرار دهید.";
+            string mode = Loc.T(_s.ScrollMode == "manual" ? "mode_manual" : "mode_auto");
+            Status.Text = Loc.F("bar_countdown", mode, _left);
         }
 
         void StopCountdown()
@@ -198,7 +210,7 @@ namespace ScrollShot
             _closing = true;
             EndMessage = msg;
             BtnDone.IsEnabled = false;
-            Status.Text = "در حال ساخت تصویر نهایی…";
+            Status.Text = Loc.T("bar_building");
             D.Bitmap result = null;
             try
             {
@@ -221,7 +233,7 @@ namespace ScrollShot
         async Task<StitchResult> AddAsync(D.Bitmap frame)
         {
             var r = await Task.Run(() => _st.Add(frame));
-            Status.Text = "فریم‌ها: " + _st.FrameCount + "   |   ارتفاع: " + _st.TotalHeight + " px";
+            Status.Text = Loc.F("bar_stats", _st.FrameCount, _st.TotalHeight);
             return r;
         }
 
@@ -247,18 +259,29 @@ namespace ScrollShot
             return prev;
         }
 
+        void Wheel(int notches, int cx, int cy)
+        {
+            if (_useMsg && _target != IntPtr.Zero)
+            {
+                int sign = notches < 0 ? -1 : 1;
+                for (int i = 0; i < Math.Abs(notches); i++) Native.PostWheel(_target, sign * 120, cx, cy);
+                return;
+            }
+            Native.SetCursorPos(cx, cy);
+            Native.SendWheel(120 * notches);
+        }
+
         async Task ScrollToTopAsync(CancellationToken ct, int cx, int cy)
         {
-            Status.Text = "در حال برگرداندن صفحه به بالا…";
+            Status.Text = Loc.T("bar_to_top");
             D.Bitmap last = null;
             try
             {
                 for (int round = 0; round < 12; round++)
                 {
-                    Native.SetCursorPos(cx, cy);
                     for (int i = 0; i < 40; i++)
                     {
-                        Native.SendWheel(120);
+                        Wheel(1, cx, cy);
                         await Task.Delay(8, ct);
                     }
                     var cur = await WaitStableAsync(ct, 250);
@@ -283,7 +306,8 @@ namespace ScrollShot
         {
             int cx = _region.X + _region.Width / 2;
             int cy = _region.Y + _region.Height / 2;
-            Native.SetCursorPos(cx, cy);
+            _target = ScreenGrab.HandleAt(ScreenGrab.EnumerateWindows(), new D.Point(cx, cy));
+            _useMsg = _s.ScrollWithoutMouse && _target != IntPtr.Zero;
             if (_s.ScrollFromTop) await ScrollToTopAsync(ct, cx, cy);
             using (var first = await WaitStableAsync(ct, 150))
             {
@@ -295,11 +319,10 @@ namespace ScrollShot
             while (true)
             {
                 ct.ThrowIfCancellationRequested();
-                if (_st.LimitReached) return "به حداکثر ارتفاع رسید.";
-                if (_st.FrameCount >= _s.MaxFrames) return "به حداکثر تعداد فریم رسید.";
+                if (_st.LimitReached) return Loc.T("end_height");
+                if (_st.FrameCount >= _s.MaxFrames) return Loc.T("end_frames");
                 int n = Math.Max(1, (int)Math.Round(notches));
-                Native.SetCursorPos(cx, cy);
-                Native.SendWheel(-120 * n);
+                Wheel(-n, cx, cy);
                 StitchResult r;
                 using (var frame = await WaitStableAsync(ct, _s.ScrollDelayMs))
                 {
@@ -314,15 +337,20 @@ namespace ScrollShot
                 }
                 else if (r == StitchResult.NoChange)
                 {
+                    if (_useMsg && _st.FrameCount == 1)
+                    {
+                        _useMsg = false;
+                        noChange = 0;
+                        continue;
+                    }
                     if (++noChange >= 2) return null;
                 }
                 else if (r == StitchResult.Failed)
                 {
                     failed++;
-                    if (failed >= 4) return "تطبیق تصاویر ناموفق بود. محتوای این ناحیه برای چسباندن مناسب نیست؛ حالت دستی را امتحان کنید.";
-                    Status.Text = "تنظیم خودکار گام اسکرول… (تلاش " + failed + ")";
-                    Native.SetCursorPos(cx, cy);
-                    Native.SendWheel(120 * n);
+                    if (failed >= 4) return Loc.T("end_match");
+                    Status.Text = Loc.F("bar_adjust", failed);
+                    Wheel(n, cx, cy);
                     using (var back = await WaitStableAsync(ct, _s.ScrollDelayMs))
                     {
                     }
@@ -338,15 +366,15 @@ namespace ScrollShot
             {
                 await AddAsync(first);
             }
-            Status.Text += "\nحالا خودتان صفحه را آرام به پایین اسکرول کنید؛ در پایان «پایان و ذخیره».";
+            Status.Text += "\n" + Loc.T("bar_manual_hint");
             D.Bitmap last = null;
             try
             {
                 while (true)
                 {
                     await Task.Delay(150, ct);
-                    if (_st.LimitReached) return "به حداکثر ارتفاع رسید.";
-                    if (_st.FrameCount >= _s.MaxFrames) return "به حداکثر تعداد فریم رسید.";
+                    if (_st.LimitReached) return Loc.T("end_height");
+                    if (_st.FrameCount >= _s.MaxFrames) return Loc.T("end_frames");
                     var cur = await GrabAsync();
                     var prev = last;
                     bool stable = prev != null && await Task.Run(() => ScrollStitcher.QuickEqual(prev, cur));
@@ -356,7 +384,7 @@ namespace ScrollShot
                     var r = await AddAsync(cur);
                     if (r == StitchResult.Failed)
                     {
-                        Status.Text = "فریم‌ها: " + _st.FrameCount + "   |   ارتفاع: " + _st.TotalHeight + " px\nاسکرول به بالا یا خیلی سریع بود؛ دوباره آرام به پایین بروید.";
+                        Status.Text = Loc.F("bar_stats", _st.FrameCount, _st.TotalHeight) + "\n" + Loc.T("bar_manual_fail");
                     }
                 }
             }

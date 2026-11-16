@@ -5,7 +5,11 @@
         ShowActivated="False" AllowsTransparency="True" Background="Transparent"
         Width="48" Height="48">
     <Grid>
-        <Ellipse Fill="#E63B82F6" Stroke="White" StrokeThickness="2"/>
+        <Ellipse Fill="{DynamicResource SystemControlHighlightAccentBrush}" Stroke="White" StrokeThickness="2">
+            <Ellipse.Effect>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.4"/>
+            </Ellipse.Effect>
+        </Ellipse>
         <TextBlock x:Name="Glyph" Text="&#xE722;" FontFamily="Segoe MDL2 Assets" Foreground="White"
                    HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
     </Grid>

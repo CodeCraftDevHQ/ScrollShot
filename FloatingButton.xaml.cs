@@ -93,15 +93,15 @@ namespace ScrollShot
         {
             var m = new ContextMenu
             {
-                FlowDirection = FlowDirection.RightToLeft,
+                FlowDirection = Loc.Flow,
                 PlacementTarget = this,
                 Placement = PlacementMode.Top
             };
-            AddItem(m, "گرفتن از ناحیه", _ctl.Region);
-            AddItem(m, "گرفتن از پنجره", _ctl.WindowCap);
-            AddItem(m, "تمام صفحه", _ctl.Full);
-            AddItem(m, "اسکرین‌شات اسکرولی", _ctl.Scroll);
-            AddItem(m, "تنظیمات", _ctl.OpenSettings);
+            AddItem(m, Loc.T("tray_region"), _ctl.Region);
+            AddItem(m, Loc.T("tray_window"), _ctl.WindowCap);
+            AddItem(m, Loc.T("tray_full"), _ctl.Full);
+            AddItem(m, Loc.T("tray_scroll"), _ctl.Scroll);
+            AddItem(m, Loc.T("tray_settings"), _ctl.OpenSettings);
             m.IsOpen = true;
         }
 

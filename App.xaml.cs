@@ -24,7 +24,10 @@ namespace ScrollShot
                 MessageBox.Show(a.Exception.Message, "ScrollShot");
                 a.Handled = true;
             };
-            _controller = new CaptureController(SettingsStore.Load());
+            var settings = SettingsStore.Load();
+            Loc.SetLanguage(settings.Language);
+            ThemeService.Apply(settings);
+            _controller = new CaptureController(settings);
             _tray = new TrayController(_controller);
             _controller.Start(_tray);
         }

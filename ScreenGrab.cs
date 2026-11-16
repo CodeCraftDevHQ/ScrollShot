@@ -111,6 +111,22 @@ namespace ScrollShot
             return null;
         }
 
+        public static IntPtr HandleAt(List<WinInfo> wins, Point p)
+        {
+            var w = WindowAt(wins, p);
+            if (w == null) return IntPtr.Zero;
+            IntPtr cur = w.Handle;
+            for (int i = 0; i < 8; i++)
+            {
+                var pt = new Native.POINT { X = p.X, Y = p.Y };
+                Native.ScreenToClient(cur, ref pt);
+                IntPtr c = Native.ChildWindowFromPointEx(cur, pt, Native.CWP_SKIPINVISIBLE);
+                if (c == IntPtr.Zero || c == cur) break;
+                cur = c;
+            }
+            return cur;
+        }
+
         public static Rectangle? ChildRectAt(IntPtr top, Point p)
         {
             IntPtr cur = top;

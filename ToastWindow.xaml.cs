@@ -22,18 +22,20 @@ namespace ScrollShot
             bool saved = res.FilePath != null;
             if (saved)
             {
-                TitleText.Text = "اسکرین‌شات ذخیره شد";
-                Sub.Text = Path.GetFileName(res.FilePath) + "  (" + width + "×" + height + ")";
+                TitleText.Text = Loc.T("toast_saved");
+                string size = OutputService.FormatSize(res.TotalBytes);
+                if (res.FilePaths.Count == 1) Sub.Text = Path.GetFileName(res.FilePath) + "  (" + width + "×" + height + ")  " + size;
+                else Sub.Text = Loc.F("toast_files", res.FilePaths.Count) + "  •  " + size;
             }
             else
             {
-                TitleText.Text = res.Copied ? "در کلیپ‌بورد کپی شد" : "اسکرین‌شات گرفته شد";
+                TitleText.Text = Loc.T(res.Copied ? "toast_copied" : "toast_taken");
                 Sub.Text = res.Error != null ? res.Error : width + "×" + height;
                 BtnOpen.Visibility = Visibility.Collapsed;
                 BtnFolder.Visibility = Visibility.Collapsed;
                 BtnDelete.Visibility = Visibility.Collapsed;
             }
-            if (saved && res.Copied) Sub.Text += " • کپی شد";
+            if (saved && res.Copied) Sub.Text += " • " + Loc.T("toast_copied_suffix");
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(seconds) };
             _timer.Tick += (a, b) => Close();
             MouseEnter += (a, b) => _timer.Stop();
@@ -73,7 +75,10 @@ namespace ScrollShot
 
         void OnDelete(object sender, RoutedEventArgs e)
         {
-            try { if (_res.FilePath != null) File.Delete(_res.FilePath); } catch { }
+            foreach (var f in _res.FilePaths)
+            {
+                try { File.Delete(f); } catch { }
+            }
             Close();
         }
 

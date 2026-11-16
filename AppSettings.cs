@@ -42,6 +42,9 @@ namespace ScrollShot
     public sealed class AppSettings
     {
         public string SaveFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "ScrollShot");
+        public string Language { get; set; } = "en";
+        public string Theme { get; set; } = "dark";
+        public string AccentColor { get; set; } = "#FF3B82F6";
         public string FileNamePattern { get; set; } = "Screenshot_{date}_{time}";
         public string Format { get; set; } = "png";
         public int JpgQuality { get; set; } = 92;
@@ -75,9 +78,22 @@ namespace ScrollShot
         public bool HighlightWindows { get; set; } = true;
         public string FrameColor { get; set; } = "#FFEF4444";
 
+        public int ScalePercent { get; set; } = 100;
+        public int MaxWidthPx { get; set; } = 0;
+        public int TargetSizeKB { get; set; } = 0;
+        public bool SplitEnabled { get; set; } = false;
+        public int SplitHeightPx { get; set; } = 8000;
+        public bool SmartCut { get; set; } = true;
+        public bool AlsoSavePdf { get; set; } = false;
+        public string PdfPageMode { get; set; } = "a4";
+        public string PdfPageSize { get; set; } = "a4";
+        public int PdfMarginMm { get; set; } = 10;
+        public int PdfJpegQuality { get; set; } = 85;
+
         public string ScrollMode { get; set; } = "auto";
         public int ScrollCountdownSec { get; set; } = 2;
         public bool ScrollFromTop { get; set; } = false;
+        public bool ScrollWithoutMouse { get; set; } = true;
         public int ScrollNotches { get; set; } = 3;
         public int ScrollDelayMs { get; set; } = 500;
         public int ScrollStableTimeoutMs { get; set; } = 2500;
@@ -96,7 +112,18 @@ namespace ScrollShot
         {
             if (string.IsNullOrWhiteSpace(SaveFolder)) SaveFolder = new AppSettings().SaveFolder;
             if (string.IsNullOrWhiteSpace(FileNamePattern)) FileNamePattern = "Screenshot_{date}_{time}";
-            if (Format != "png" && Format != "jpg" && Format != "bmp") Format = "png";
+            if (Language != "en" && Language != "fa") Language = "en";
+            if (Theme != "dark" && Theme != "light" && Theme != "system") Theme = "dark";
+            if (string.IsNullOrWhiteSpace(AccentColor)) AccentColor = "#FF3B82F6";
+            if (Format != "png" && Format != "jpg" && Format != "bmp" && Format != "pdf") Format = "png";
+            ScalePercent = Math.Clamp(ScalePercent, 10, 100);
+            MaxWidthPx = Math.Clamp(MaxWidthPx, 0, 20000);
+            TargetSizeKB = Math.Clamp(TargetSizeKB, 0, 200000);
+            SplitHeightPx = Math.Clamp(SplitHeightPx, 1000, 60000);
+            PdfMarginMm = Math.Clamp(PdfMarginMm, 0, 40);
+            PdfJpegQuality = Math.Clamp(PdfJpegQuality, 30, 100);
+            if (PdfPageMode != "a4" && PdfPageMode != "single") PdfPageMode = "a4";
+            if (PdfPageSize != "a4" && PdfPageSize != "letter") PdfPageSize = "a4";
             JpgQuality = Math.Clamp(JpgQuality, 40, 100);
             ToastSeconds = Math.Clamp(ToastSeconds, 1, 60);
             FloatingSize = Math.Clamp(FloatingSize, 32, 96);
@@ -108,7 +135,7 @@ namespace ScrollShot
             ScrollCountdownSec = Math.Clamp(ScrollCountdownSec, 0, 10);
             ScrollDelayMs = Math.Clamp(ScrollDelayMs, 100, 5000);
             ScrollStableTimeoutMs = Math.Clamp(ScrollStableTimeoutMs, 500, 10000);
-            MaxHeightPx = Math.Clamp(MaxHeightPx, 2000, 60000);
+            MaxHeightPx = Math.Clamp(MaxHeightPx, 2000, 100000);
             MaxFrames = Math.Clamp(MaxFrames, 2, 1000);
             IgnoreLeftPx = Math.Clamp(IgnoreLeftPx, 0, 200);
             IgnoreRightPx = Math.Clamp(IgnoreRightPx, 0, 200);

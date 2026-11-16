@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Drawing;
@@ -9,37 +10,51 @@ namespace ScrollShot
 {
     internal sealed class OutputResult
     {
-        public string FilePath;
+        public List<string> FilePaths = new List<string>();
+        public long TotalBytes;
         public bool Copied;
         public string Error;
+        public string FilePath { get { return FilePaths.Count > 0 ? FilePaths[0] : null; } }
     }
 
     internal static class OutputService
     {
+        public static string FormatSize(long bytes)
+        {
+            if (bytes >= 1024L * 1024) return (bytes / 1048576.0).ToString("0.0") + " MB";
+            return Math.Max(1, bytes / 1024) + " KB";
+        }
+
         public static OutputResult Process(Bitmap bmp, AppSettings s, string type)
         {
             var res = new OutputResult();
-            if (s.SaveToFile)
+            Bitmap scaled = null;
+            try
             {
-                try
+                scaled = ImageTools.ScaleIfNeeded(bmp, s.ScalePercent, s.MaxWidthPx);
+                var work = scaled ?? bmp;
+                if (s.SaveToFile)
                 {
-                    res.FilePath = Save(bmp, s, type);
+                    try
+                    {
+                        SaveAll(work, s, type, res);
+                    }
+                    catch (Exception ex)
+                    {
+                        res.Error = ex.Message;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    res.Error = ex.Message;
-                }
+                if (s.CopyToClipboard) res.Copied = CopyToClipboard(work);
             }
-            if (s.CopyToClipboard) res.Copied = CopyToClipboard(bmp);
+            finally
+            {
+                if (scaled != null) scaled.Dispose();
+            }
             return res;
         }
 
-        static string Save(Bitmap bmp, AppSettings s, string type)
+        static string UniqueBase(AppSettings s, string type)
         {
-            Directory.CreateDirectory(s.SaveFolder);
-            string fmt = s.Format;
-            if (fmt == "jpg" && bmp.Height > 65000) fmt = "png";
-            string ext = fmt == "jpg" ? ".jpg" : fmt == "bmp" ? ".bmp" : ".png";
             var now = DateTime.Now;
             string name = s.FileNamePattern
                 .Replace("{date}", now.ToString("yyyy-MM-dd"))
@@ -47,28 +62,124 @@ namespace ScrollShot
                 .Replace("{type}", type);
             foreach (char c in Path.GetInvalidFileNameChars()) name = name.Replace(c.ToString(), "_");
             if (string.IsNullOrWhiteSpace(name)) name = "Screenshot";
-            string path = Path.Combine(s.SaveFolder, name + ext);
+            string b = name;
             int n = 1;
-            while (File.Exists(path)) path = Path.Combine(s.SaveFolder, name + "_" + (n++) + ext);
+            while (Directory.GetFiles(s.SaveFolder, b + "*").Length > 0) b = name + "_" + (n++);
+            return b;
+        }
 
+        static void SaveAll(Bitmap work, AppSettings s, string type, OutputResult res)
+        {
+            Directory.CreateDirectory(s.SaveFolder);
+            string baseName = UniqueBase(s, type);
+            string fmt = s.Format;
+
+            if (fmt == "pdf")
+            {
+                string p = Path.Combine(s.SaveFolder, baseName + ".pdf");
+                SavePdf(work, p, s);
+                res.FilePaths.Add(p);
+            }
+            else
+            {
+                int splitH = s.SplitEnabled ? s.SplitHeightPx : 0;
+                if (fmt == "jpg" && work.Height > 65000 && (splitH == 0 || splitH > 65000)) splitH = 60000;
+                if (splitH > 0 && work.Height > splitH)
+                {
+                    var parts = ImageTools.Split(work, splitH, s.SmartCut);
+                    try
+                    {
+                        for (int i = 0; i < parts.Count; i++)
+                        {
+                            res.FilePaths.Add(SaveImage(parts[i], Path.Combine(s.SaveFolder, baseName + "_" + (i + 1).ToString("D2")), fmt, s));
+                        }
+                    }
+                    finally
+                    {
+                        foreach (var part in parts) part.Dispose();
+                    }
+                }
+                else
+                {
+                    res.FilePaths.Add(SaveImage(work, Path.Combine(s.SaveFolder, baseName), fmt, s));
+                }
+                if (s.AlsoSavePdf)
+                {
+                    string p = Path.Combine(s.SaveFolder, baseName + ".pdf");
+                    SavePdf(work, p, s);
+                    res.FilePaths.Add(p);
+                }
+            }
+
+            foreach (var f in res.FilePaths)
+            {
+                try { res.TotalBytes += new FileInfo(f).Length; } catch { }
+            }
+        }
+
+        static string SaveImage(Bitmap bmp, string pathNoExt, string fmt, AppSettings s)
+        {
+            string path;
             if (fmt == "jpg")
             {
-                var codec = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
-                using (var ep = new EncoderParameters(1))
-                {
-                    ep.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)s.JpgQuality);
-                    bmp.Save(path, codec, ep);
-                }
+                path = pathNoExt + ".jpg";
+                File.WriteAllBytes(path, ImageTools.EncodeJpegTarget(bmp, s.JpgQuality, s.TargetSizeKB * 1024L));
             }
             else if (fmt == "bmp")
             {
+                path = pathNoExt + ".bmp";
                 bmp.Save(path, ImageFormat.Bmp);
             }
             else
             {
+                path = pathNoExt + ".png";
                 bmp.Save(path, ImageFormat.Png);
             }
             return path;
+        }
+
+        static void SavePdf(Bitmap img, string path, AppSettings s)
+        {
+            bool letter = s.PdfPageSize == "letter";
+            double pw = letter ? 612 : 595.28;
+            double ph = letter ? 792 : 841.89;
+            double margin = s.PdfMarginMm * 72.0 / 25.4;
+            long target = s.TargetSizeKB * 1024L;
+            var pdf = new PdfBuilder();
+
+            if (s.PdfPageMode == "single")
+            {
+                double wpt = img.Width * 0.75 + 2 * margin;
+                double hpt = img.Height * 0.75 + 2 * margin;
+                if (wpt <= 14400 && hpt <= 14400)
+                {
+                    var jpg = ImageTools.EncodeJpegTarget(img, s.PdfJpegQuality, target);
+                    pdf.AddPage(wpt, hpt, margin, margin, img.Width * 0.75, img.Height * 0.75, jpg, img.Width, img.Height);
+                    pdf.Save(path);
+                    return;
+                }
+            }
+
+            double availW = pw - 2 * margin;
+            double availH = ph - 2 * margin;
+            double scale = availW / img.Width;
+            int sliceH = Math.Max(1, (int)(availH / scale));
+            var slices = ImageTools.Split(img, sliceH, s.SmartCut);
+            try
+            {
+                foreach (var sl in slices)
+                {
+                    long t = target > 0 ? Math.Max(1, target * sl.Height / img.Height) : 0;
+                    var jpg = ImageTools.EncodeJpegTarget(sl, s.PdfJpegQuality, t);
+                    double dh = sl.Height * scale;
+                    pdf.AddPage(pw, ph, margin, ph - margin - dh, availW, dh, jpg, sl.Width, sl.Height);
+                }
+                pdf.Save(path);
+            }
+            finally
+            {
+                foreach (var sl in slices) sl.Dispose();
+            }
         }
 
         static bool CopyToClipboard(Bitmap bmp)

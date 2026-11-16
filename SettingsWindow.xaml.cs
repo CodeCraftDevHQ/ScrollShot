@@ -1,18 +1,40 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace ScrollShot
 {
     public partial class SettingsWindow : Window
     {
+        static readonly string[] SwatchColors =
+        {
+            "#FF3B82F6", "#FF22C55E", "#FFEF4444", "#FFF59E0B",
+            "#FF8B5CF6", "#FFEC4899", "#FF14B8A6", "#FF64748B"
+        };
+
         readonly CaptureController _ctl;
+        FrameworkElement[] _pages;
         AppSettings _edit;
+        bool _ready;
+        bool _saved;
 
         internal SettingsWindow(CaptureController ctl)
         {
             _ctl = ctl;
             InitializeComponent();
+            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4 };
             Load(ctl.Settings.Clone());
+            BuildSwatches();
+            Nav.SelectedIndex = 0;
+            _ready = true;
+            Closed += (a, b) =>
+            {
+                if (!_saved)
+                {
+                    Loc.SetLanguage(_ctl.Settings.Language);
+                    ThemeService.Apply(_ctl.Settings);
+                }
+            };
         }
 
         void Load(AppSettings s)
@@ -25,6 +47,69 @@ namespace ScrollShot
             HkScroll.Value = _edit.ScrollHotkey;
         }
 
+        void BuildSwatches()
+        {
+            foreach (var hex in SwatchColors)
+            {
+                string h = hex;
+                var b = new Button
+                {
+                    Width = 30,
+                    Height = 30,
+                    Margin = new Thickness(0, 0, 8, 8),
+                    Padding = new Thickness(0),
+                    Background = (Brush)new BrushConverter().ConvertFromString(h)
+                };
+                b.Click += (a, e) =>
+                {
+                    AccentBox.Text = h;
+                    _edit.AccentColor = h;
+                    PreviewTheme();
+                };
+                Swatches.Children.Add(b);
+            }
+        }
+
+        string Tag(ComboBox box)
+        {
+            var item = box.SelectedItem as ComboBoxItem;
+            return item == null ? null : item.Tag as string;
+        }
+
+        void PreviewTheme()
+        {
+            string theme = Tag(ThemeBox) ?? _edit.Theme;
+            ThemeService.Apply(theme, AccentBox.Text);
+        }
+
+        void OnNav(object sender, SelectionChangedEventArgs e)
+        {
+            if (_pages == null) return;
+            for (int i = 0; i < _pages.Length; i++)
+            {
+                _pages[i].Visibility = i == Nav.SelectedIndex ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        void OnLangChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_ready) return;
+            string t = Tag(LangBox);
+            if (t != null) Loc.SetLanguage(t);
+        }
+
+        void OnThemeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_ready) return;
+            PreviewTheme();
+        }
+
+        void OnAccentChanged(object sender, RoutedEventArgs e)
+        {
+            if (!_ready) return;
+            PreviewTheme();
+        }
+
         void OnBrowse(object sender, RoutedEventArgs e)
         {
             var d = new Microsoft.Win32.OpenFolderDialog { InitialDirectory = _edit.SaveFolder };
@@ -35,7 +120,7 @@ namespace ScrollShot
             }
         }
 
-        bool ValidColor(string text)
+        static bool ValidColor(string text)
         {
             try
             {
@@ -50,9 +135,9 @@ namespace ScrollShot
 
         void OnSave(object sender, RoutedEventArgs e)
         {
-            if (!ValidColor(_edit.SelectionColor) || !ValidColor(_edit.FrameColor))
+            if (!ValidColor(_edit.SelectionColor) || !ValidColor(_edit.FrameColor) || !ValidColor(_edit.AccentColor))
             {
-                MessageBox.Show(this, "رنگ واردشده معتبر نیست. نمونه: #FF3B82F6", "ScrollShot");
+                MessageBox.Show(this, Loc.T("color_invalid"), "ScrollShot");
                 return;
             }
             _edit.RegionHotkey = HkRegion.Value ?? new HotkeyDef();
@@ -61,6 +146,7 @@ namespace ScrollShot
             _edit.ScrollHotkey = HkScroll.Value ?? new HotkeyDef();
             _edit.FloatingX = _ctl.Settings.FloatingX;
             _edit.FloatingY = _ctl.Settings.FloatingY;
+            _saved = true;
             _ctl.Apply(_edit);
             Close();
         }
@@ -72,7 +158,10 @@ namespace ScrollShot
 
         void OnReset(object sender, RoutedEventArgs e)
         {
-            Load(new AppSettings().Normalize());
+            var d = new AppSettings().Normalize();
+            Load(d);
+            Loc.SetLanguage(d.Language);
+            ThemeService.Apply(d);
         }
     }
 }

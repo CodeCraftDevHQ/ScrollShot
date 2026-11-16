@@ -75,6 +75,15 @@ namespace ScrollShot
         [DllImport("user32.dll")] public static extern int ReleaseDC(IntPtr h, IntPtr dc);
         [DllImport("gdi32.dll")] public static extern bool BitBlt(IntPtr dest, int x, int y, int w, int h, IntPtr src, int sx, int sy, uint rop);
 
+        [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr h, uint msg, IntPtr w, IntPtr l);
+
+        public static void PostWheel(IntPtr target, int delta, int x, int y)
+        {
+            IntPtr wp = new IntPtr(unchecked((int)((uint)(delta & 0xFFFF) << 16)));
+            IntPtr lp = new IntPtr(unchecked((int)(((uint)y << 16) | ((uint)x & 0xFFFF))));
+            PostMessage(target, 0x020A, wp, lp);
+        }
+
         public static void SendWheel(int delta)
         {
             var input = new INPUT

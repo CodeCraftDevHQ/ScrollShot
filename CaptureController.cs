@@ -38,6 +38,8 @@ namespace ScrollShot
         {
             Settings = s.Normalize();
             SettingsStore.Save(Settings);
+            Loc.SetLanguage(Settings.Language);
+            ThemeService.Apply(Settings);
             RegisterHotkeys();
             UpdateFloating();
             ApplyStartup();
@@ -52,13 +54,13 @@ namespace ScrollShot
         {
             _hk.Clear();
             var failed = new List<string>();
-            Reg(Settings.RegionHotkey, "ناحیه", Region, failed);
-            Reg(Settings.WindowHotkey, "پنجره", WindowCap, failed);
-            Reg(Settings.FullScreenHotkey, "تمام صفحه", Full, failed);
-            Reg(Settings.ScrollHotkey, "اسکرولی", Scroll, failed);
+            Reg(Settings.RegionHotkey, Loc.T("tray_region"), Region, failed);
+            Reg(Settings.WindowHotkey, Loc.T("tray_window"), WindowCap, failed);
+            Reg(Settings.FullScreenHotkey, Loc.T("tray_full"), Full, failed);
+            Reg(Settings.ScrollHotkey, Loc.T("tray_scroll"), Scroll, failed);
             if (failed.Count > 0)
             {
-                _tray.Balloon("میانبر در دسترس نیست", "این میانبرها توسط برنامه دیگری استفاده می‌شوند: " + string.Join("، ", failed), true);
+                _tray.Balloon(Loc.T("msg_hotkey_title"), Loc.F("msg_hotkey_text", string.Join(Loc.T("msg_sep"), failed)), true);
             }
         }
 
@@ -159,7 +161,7 @@ namespace ScrollShot
             }
             catch (Exception ex)
             {
-                _tray.Balloon("خطا", ex.Message, true);
+                _tray.Balloon(Loc.T("msg_error"), ex.Message, true);
             }
             finally
             {
@@ -224,7 +226,7 @@ namespace ScrollShot
             {
                 using (var bmp = await win.RunAsync())
                 {
-                    if (!string.IsNullOrEmpty(win.EndMessage)) _tray.Balloon("اسکرین‌شات اسکرولی", win.EndMessage, true);
+                    if (!string.IsNullOrEmpty(win.EndMessage)) _tray.Balloon(Loc.T("tray_scroll"), win.EndMessage, true);
                     if (bmp != null) Deliver(bmp, "Scroll");
                 }
             }
@@ -257,7 +259,7 @@ namespace ScrollShot
             }
             else if (res.Error != null)
             {
-                _tray.Balloon("خطا در ذخیره", res.Error, true);
+                _tray.Balloon(Loc.T("msg_save_error"), res.Error, true);
             }
         }
     }

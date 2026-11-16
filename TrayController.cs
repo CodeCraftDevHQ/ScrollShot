@@ -3,10 +3,26 @@ using System.Drawing;
 
 namespace ScrollShot
 {
+    internal sealed class DarkColors : System.Windows.Forms.ProfessionalColorTable
+    {
+        public override Color ToolStripDropDownBackground { get { return Color.FromArgb(43, 43, 43); } }
+        public override Color ImageMarginGradientBegin { get { return Color.FromArgb(43, 43, 43); } }
+        public override Color ImageMarginGradientMiddle { get { return Color.FromArgb(43, 43, 43); } }
+        public override Color ImageMarginGradientEnd { get { return Color.FromArgb(43, 43, 43); } }
+        public override Color MenuBorder { get { return Color.FromArgb(75, 75, 75); } }
+        public override Color MenuItemBorder { get { return Color.FromArgb(75, 75, 75); } }
+        public override Color MenuItemSelected { get { return Color.FromArgb(72, 72, 72); } }
+        public override Color MenuItemSelectedGradientBegin { get { return Color.FromArgb(72, 72, 72); } }
+        public override Color MenuItemSelectedGradientEnd { get { return Color.FromArgb(72, 72, 72); } }
+        public override Color SeparatorDark { get { return Color.FromArgb(80, 80, 80); } }
+        public override Color SeparatorLight { get { return Color.FromArgb(80, 80, 80); } }
+    }
+
     internal sealed class TrayController : IDisposable
     {
         readonly System.Windows.Forms.NotifyIcon _icon;
         readonly CaptureController _ctl;
+        System.Windows.Forms.ContextMenuStrip _menu;
 
         public TrayController(CaptureController ctl)
         {
@@ -17,22 +33,49 @@ namespace ScrollShot
                 Text = "ScrollShot",
                 Visible = true
             };
+            _icon.DoubleClick += (a, b) => _ctl.RunAction(_ctl.Settings.TrayDoubleClick);
+            BuildMenu();
+            Loc.Changed += BuildMenu;
+            ThemeService.Changed += BuildMenu;
+        }
+
+        void BuildMenu()
+        {
+            bool dark = ThemeService.IsDark;
             var menu = new System.Windows.Forms.ContextMenuStrip
             {
-                RightToLeft = System.Windows.Forms.RightToLeft.Yes
+                RightToLeft = Loc.IsRtl ? System.Windows.Forms.RightToLeft.Yes : System.Windows.Forms.RightToLeft.No,
+                Font = new Font("Segoe UI", 9.5f),
+                ShowImageMargin = false
             };
-            menu.Items.Add("گرفتن از ناحیه", null, (a, b) => _ctl.Region());
-            menu.Items.Add("گرفتن از پنجره", null, (a, b) => _ctl.WindowCap());
-            menu.Items.Add("تمام صفحه", null, (a, b) => _ctl.Full());
-            menu.Items.Add("اسکرین‌شات اسکرولی", null, (a, b) => _ctl.Scroll());
-            menu.Items.Add("تمام صفحه با تأخیر", null, (a, b) => _ctl.DelayedFull());
+            if (dark)
+            {
+                menu.Renderer = new System.Windows.Forms.ToolStripProfessionalRenderer(new DarkColors()) { RoundedEdges = false };
+                menu.BackColor = Color.FromArgb(43, 43, 43);
+                menu.ForeColor = Color.FromArgb(240, 240, 240);
+            }
+            Add(menu, "tray_region", () => _ctl.Region());
+            Add(menu, "tray_window", () => _ctl.WindowCap());
+            Add(menu, "tray_full", () => _ctl.Full());
+            Add(menu, "tray_scroll", () => _ctl.Scroll());
+            Add(menu, "tray_delayed", () => _ctl.DelayedFull());
             menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-            menu.Items.Add("باز کردن پوشه ذخیره", null, (a, b) => _ctl.OpenFolder());
-            menu.Items.Add("تنظیمات", null, (a, b) => _ctl.OpenSettings());
+            Add(menu, "tray_folder", () => _ctl.OpenFolder());
+            Add(menu, "tray_settings", () => _ctl.OpenSettings());
             menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-            menu.Items.Add("خروج", null, (a, b) => System.Windows.Application.Current.Shutdown());
+            Add(menu, "tray_exit", () => System.Windows.Application.Current.Shutdown());
+            var old = _menu;
+            _menu = menu;
             _icon.ContextMenuStrip = menu;
-            _icon.DoubleClick += (a, b) => _ctl.RunAction(_ctl.Settings.TrayDoubleClick);
+            if (old != null) old.Dispose();
+        }
+
+        static void Add(System.Windows.Forms.ContextMenuStrip menu, string key, Action action)
+        {
+            var item = new System.Windows.Forms.ToolStripMenuItem(Loc.T(key));
+            item.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            item.Click += (a, b) => action();
+            menu.Items.Add(item);
         }
 
         public void Balloon(string title, string text, bool warning)
@@ -62,6 +105,8 @@ namespace ScrollShot
 
         public void Dispose()
         {
+            Loc.Changed -= BuildMenu;
+            ThemeService.Changed -= BuildMenu;
             _icon.Visible = false;
             _icon.Dispose();
         }

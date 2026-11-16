@@ -1,19 +1,20 @@
 # ScrollShot
 
-برنامه اسکرین‌شات ویندوز با Scrolling Screenshot (WPF، C#، .NET 10).
+Windows screenshot app with scrolling screenshots (WPF, C#, .NET 10).
 
-## اجرا
-1. `ScrollShot.csproj` را در Visual Studio باز کنید و Build / Run بزنید.
-2. برنامه در tray (کنار ساعت) می‌نشیند و یک دکمه شناور هم روی صفحه دارد.
+## Build
+Open `ScrollShot.csproj` in Visual Studio. The `ModernWpfUI` NuGet package is restored automatically (internet needed on first build).
 
-## میانبرهای پیش‌فرض (قابل تغییر در تنظیمات)
-- Ctrl+Shift+1: ناحیه
-- Ctrl+Shift+2: پنجره
-- Ctrl+Shift+3: تمام صفحه
-- Ctrl+Shift+4: اسکرین‌شات اسکرولی
+## Default shortcuts (changeable in Settings)
+- Ctrl+Shift+1: region
+- Ctrl+Shift+2: window
+- Ctrl+Shift+3: full screen
+- Ctrl+Shift+4: scrolling screenshot
 
-## اسکرین‌شات اسکرولی
-1. میانبر (Ctrl+Shift+4) را بزنید و ناحیه را بکشید (یا روی یک پنجره کلیک کنید؛ با Ctrl بخش داخلی پنجره هایلایت می‌شود).
-2. بعد از چند ثانیه شمارش معکوس، خودکار شروع می‌شود. گام اسکرول خودش تنظیم می‌شود و در صورت خطا دوباره تلاش می‌کند.
-3. با Esc لغو و با فشردن دوباره میانبر اسکرولی (یا دکمه «پایان و ذخیره») تمام می‌شود.
-4. گزینه «قبل از شروع، صفحه را به بالا برگردان» صفحه را از ابتدا می‌گیرد.
+## Scrolling screenshot
+1. Press the shortcut and select an area (or click a window; hold Ctrl to pick inner panes).
+2. After a short countdown it starts automatically; the scroll step adjusts itself.
+3. Esc cancels; press the shortcut again or click "Finish & save" to end.
+
+## Settings
+Language (English / Persian), theme (dark / light / follow system), accent color, output format (PNG/JPG/BMP/PDF), size reduction, splitting long images, PDF options, shortcuts, floating button, and scrolling tuning.
