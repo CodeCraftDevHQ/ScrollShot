@@ -22,7 +22,7 @@ namespace ScrollShot
         {
             _ctl = ctl;
             InitializeComponent();
-            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4 };
+            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4, Page5 };
             Load(ctl.Settings.Clone());
             BuildSwatches();
             Nav.SelectedIndex = 0;
@@ -45,6 +45,8 @@ namespace ScrollShot
             HkWindow.Value = _edit.WindowHotkey;
             HkFull.Value = _edit.FullScreenHotkey;
             HkScroll.Value = _edit.ScrollHotkey;
+            HkProfile.Value = _edit.ProfileHotkey;
+            RefreshProfiles();
         }
 
         void BuildSwatches()
@@ -110,6 +112,43 @@ namespace ScrollShot
             PreviewTheme();
         }
 
+        void RefreshProfiles()
+        {
+            ProfileList.ItemsSource = null;
+            ProfileList.ItemsSource = _edit.Profiles;
+            ActiveText.Text = Loc.F("pf_active", string.IsNullOrEmpty(_edit.ActiveProfile) ? "—" : _edit.ActiveProfile);
+        }
+
+        void OnProfileSave(object sender, RoutedEventArgs e)
+        {
+            string name = (ProfileName.Text ?? "").Trim();
+            if (name.Length == 0) return;
+            var p = _edit.CaptureProfile(name);
+            int i = _edit.Profiles.FindIndex(x => string.Equals(x.Name, name, System.StringComparison.OrdinalIgnoreCase));
+            if (i >= 0) _edit.Profiles[i] = p; else _edit.Profiles.Add(p);
+            _edit.ActiveProfile = name;
+            RefreshProfiles();
+        }
+
+        void OnProfileApply(object sender, RoutedEventArgs e)
+        {
+            var sel = ProfileList.SelectedItem as NamedProfile;
+            if (sel == null) return;
+            _edit.ApplyProfile(sel.Name);
+            DataContext = null;
+            DataContext = _edit;
+            RefreshProfiles();
+        }
+
+        void OnProfileDelete(object sender, RoutedEventArgs e)
+        {
+            var sel = ProfileList.SelectedItem as NamedProfile;
+            if (sel == null) return;
+            _edit.Profiles.Remove(sel);
+            if (_edit.ActiveProfile == sel.Name) _edit.ActiveProfile = "";
+            RefreshProfiles();
+        }
+
         void OnBrowse(object sender, RoutedEventArgs e)
         {
             var d = new Microsoft.Win32.OpenFolderDialog { InitialDirectory = _edit.SaveFolder };
@@ -144,6 +183,7 @@ namespace ScrollShot
             _edit.WindowHotkey = HkWindow.Value ?? new HotkeyDef();
             _edit.FullScreenHotkey = HkFull.Value ?? new HotkeyDef();
             _edit.ScrollHotkey = HkScroll.Value ?? new HotkeyDef();
+            _edit.ProfileHotkey = HkProfile.Value ?? new HotkeyDef();
             _edit.FloatingX = _ctl.Settings.FloatingX;
             _edit.FloatingY = _ctl.Settings.FloatingY;
             _saved = true;

@@ -156,6 +156,16 @@ namespace ScrollShot
             A("fl_opacity", "Button opacity", "شفافیت دکمه");
 
             A("sec_sc_start", "Starting", "شروع");
+            A("nav_profiles", "Profiles", "پروفایل‌ها");
+            A("sec_profiles", "Saved profiles", "پروفایل‌های ذخیره‌شده");
+            A("pf_hint", "A profile stores the saving, size, PDF and scrolling options. Pick one and apply it, or save the current options under a new name.", "پروفایل شامل گزینه‌های ذخیره، حجم، PDF و اسکرول است. یکی را انتخاب و اعمال کنید، یا گزینه‌های فعلی را با نام جدید ذخیره کنید.");
+            A("pf_apply", "Apply", "اعمال");
+            A("pf_delete", "Delete", "حذف");
+            A("pf_save", "Save current options", "ذخیره گزینه‌های فعلی");
+            A("pf_active", "Active profile: {0}", "پروفایل فعال: {0}");
+            A("tray_profiles", "Profiles", "پروفایل‌ها");
+            A("hk_profile", "Switch to next profile", "رفتن به پروفایل بعدی");
+            A("msg_profile_applied", "Profile applied: {0}", "پروفایل اعمال شد: {0}");
             A("sc_direction", "Scroll direction", "جهت اسکرول");
             A("dir_vertical", "Vertical", "عمودی");
             A("dir_horizontal", "Horizontal", "افقی");

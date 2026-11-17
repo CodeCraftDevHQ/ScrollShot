@@ -39,8 +39,71 @@ namespace ScrollShot
         }
     }
 
+    public sealed class NamedProfile
+    {
+        public string Name { get; set; } = "";
+        public Dictionary<string, string> Values { get; set; } = new Dictionary<string, string>();
+    }
+
     public sealed class AppSettings
     {
+        static readonly string[] ProfileKeys =
+        {
+            "SaveFolder", "FileNamePattern", "Format", "JpgQuality", "SaveToFile", "CopyToClipboard",
+            "ScalePercent", "MaxWidthPx", "TargetSizeKB", "SplitEnabled", "SplitHeightPx", "SmartCut",
+            "AlsoSavePdf", "PdfPageMode", "PdfPageSize", "PdfMarginMm", "PdfJpegQuality",
+            "ScrollDirection", "ScrollMode", "ScrollFromTop", "ScrollWithoutMouse", "ScrollNotches", "MaxHeightPx"
+        };
+
+        public List<NamedProfile> Profiles { get; set; }
+        public string ActiveProfile { get; set; } = "";
+        public HotkeyDef ProfileHotkey { get; set; } = new HotkeyDef();
+
+        public NamedProfile CaptureProfile(string name)
+        {
+            var p = new NamedProfile { Name = name };
+            foreach (var key in ProfileKeys)
+            {
+                var pi = typeof(AppSettings).GetProperty(key);
+                if (pi == null) continue;
+                p.Values[key] = JsonSerializer.Serialize(pi.GetValue(this), pi.PropertyType);
+            }
+            return p;
+        }
+
+        public bool ApplyProfile(string name)
+        {
+            if (Profiles == null) return false;
+            var p = Profiles.Find(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (p == null) return false;
+            foreach (var kv in p.Values)
+            {
+                var pi = typeof(AppSettings).GetProperty(kv.Key);
+                if (pi == null || !pi.CanWrite) continue;
+                try
+                {
+                    pi.SetValue(this, JsonSerializer.Deserialize(kv.Value, pi.PropertyType));
+                }
+                catch
+                {
+                }
+            }
+            ActiveProfile = p.Name;
+            Normalize();
+            return true;
+        }
+
+        void SeedProfiles()
+        {
+            Profiles = new List<NamedProfile>();
+            var docs = new AppSettings { Format = "pdf", PdfPageMode = "a4", PdfJpegQuality = 75 };
+            Profiles.Add(docs.CaptureProfile("Documents (PDF)"));
+            var hq = new AppSettings { Format = "png", ScalePercent = 100 };
+            Profiles.Add(hq.CaptureProfile("High quality (PNG)"));
+            var small = new AppSettings { Format = "jpg", JpgQuality = 70, ScalePercent = 80, SplitEnabled = true };
+            Profiles.Add(small.CaptureProfile("Small & shareable (JPG)"));
+        }
+
         public string SaveFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "ScrollShot");
         public string Language { get; set; } = "en";
         public string Theme { get; set; } = "dark";
@@ -111,6 +174,9 @@ namespace ScrollShot
 
         public AppSettings Normalize()
         {
+            if (Profiles == null) SeedProfiles();
+            if (ActiveProfile == null) ActiveProfile = "";
+            if (ProfileHotkey == null) ProfileHotkey = new HotkeyDef();
             if (string.IsNullOrWhiteSpace(SaveFolder)) SaveFolder = new AppSettings().SaveFolder;
             if (string.IsNullOrWhiteSpace(FileNamePattern)) FileNamePattern = "Screenshot_{date}_{time}";
             if (Language != "en" && Language != "fa") Language = "en";

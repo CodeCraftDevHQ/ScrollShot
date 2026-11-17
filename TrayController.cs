@@ -39,6 +39,11 @@ namespace ScrollShot
             ThemeService.Changed += BuildMenu;
         }
 
+        public void Rebuild()
+        {
+            BuildMenu();
+        }
+
         void BuildMenu()
         {
             bool dark = ThemeService.IsDark;
@@ -59,6 +64,29 @@ namespace ScrollShot
             Add(menu, "tray_full", () => _ctl.Full());
             Add(menu, "tray_scroll", () => _ctl.Scroll());
             Add(menu, "tray_delayed", () => _ctl.DelayedFull());
+            var profiles = _ctl.Settings.Profiles;
+            if (profiles != null && profiles.Count > 0)
+            {
+                var sub = new System.Windows.Forms.ToolStripMenuItem(Loc.T("tray_profiles"));
+                foreach (var p in profiles)
+                {
+                    string n = p.Name;
+                    var it = new System.Windows.Forms.ToolStripMenuItem(n) { Checked = n == _ctl.Settings.ActiveProfile };
+                    if (dark)
+                    {
+                        it.BackColor = Color.FromArgb(43, 43, 43);
+                        it.ForeColor = Color.FromArgb(240, 240, 240);
+                    }
+                    it.Click += (a, b) => _ctl.ApplyProfile(n);
+                    sub.DropDownItems.Add(it);
+                }
+                if (dark)
+                {
+                    sub.DropDown.BackColor = Color.FromArgb(43, 43, 43);
+                    sub.ForeColor = Color.FromArgb(240, 240, 240);
+                }
+                menu.Items.Add(sub);
+            }
             menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
             Add(menu, "tray_folder", () => _ctl.OpenFolder());
             Add(menu, "tray_settings", () => _ctl.OpenSettings());

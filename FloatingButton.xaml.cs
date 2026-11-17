@@ -101,6 +101,19 @@ namespace ScrollShot
             AddItem(m, Loc.T("tray_window"), _ctl.WindowCap);
             AddItem(m, Loc.T("tray_full"), _ctl.Full);
             AddItem(m, Loc.T("tray_scroll"), _ctl.Scroll);
+            var profiles = _ctl.Settings.Profiles;
+            if (profiles != null && profiles.Count > 0)
+            {
+                var sub = new MenuItem { Header = Loc.T("tray_profiles") };
+                foreach (var p in profiles)
+                {
+                    string n = p.Name;
+                    var it = new MenuItem { Header = n, IsChecked = n == _ctl.Settings.ActiveProfile };
+                    it.Click += (a, b) => _ctl.ApplyProfile(n);
+                    sub.Items.Add(it);
+                }
+                m.Items.Add(sub);
+            }
             AddItem(m, Loc.T("tray_settings"), _ctl.OpenSettings);
             m.IsOpen = true;
         }

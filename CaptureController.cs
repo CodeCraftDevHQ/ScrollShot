@@ -43,6 +43,23 @@ namespace ScrollShot
             RegisterHotkeys();
             UpdateFloating();
             ApplyStartup();
+            _tray.Rebuild();
+        }
+
+        public void ApplyProfile(string name)
+        {
+            var s = Settings.Clone();
+            if (!s.ApplyProfile(name)) return;
+            Apply(s);
+            _tray.Balloon(Loc.T("tray_profiles"), Loc.F("msg_profile_applied", name), false);
+        }
+
+        public void CycleProfile()
+        {
+            var list = Settings.Profiles;
+            if (list == null || list.Count == 0) return;
+            int i = list.FindIndex(p => p.Name == Settings.ActiveProfile);
+            ApplyProfile(list[(i + 1) % list.Count].Name);
         }
 
         public void SaveSettings()
@@ -58,6 +75,7 @@ namespace ScrollShot
             Reg(Settings.WindowHotkey, Loc.T("tray_window"), WindowCap, failed);
             Reg(Settings.FullScreenHotkey, Loc.T("tray_full"), Full, failed);
             Reg(Settings.ScrollHotkey, Loc.T("tray_scroll"), Scroll, failed);
+            Reg(Settings.ProfileHotkey, Loc.T("hk_profile"), CycleProfile, failed);
             if (failed.Count > 0)
             {
                 _tray.Balloon(Loc.T("msg_hotkey_title"), Loc.F("msg_hotkey_text", string.Join(Loc.T("msg_sep"), failed)), true);
