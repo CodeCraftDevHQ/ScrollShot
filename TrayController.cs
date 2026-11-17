@@ -91,6 +91,7 @@ namespace ScrollShot
                 menu.Items.Add(sub);
             }
             menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            Add(menu, "tray_log", () => _ctl.OpenLog());
             Add(menu, "tray_update", () => _ctl.CheckForUpdates(true));
             Add(menu, "tray_folder", () => _ctl.OpenFolder());
             Add(menu, "tray_settings", () => _ctl.OpenSettings());

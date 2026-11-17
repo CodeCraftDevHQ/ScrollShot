@@ -24,3 +24,7 @@ Language (English / Persian), theme (dark / light / follow system), accent color
 - Bump `<Version>` in `ScrollShot.csproj` for each release.
 - Settings > About: set an update URL pointing to a JSON like `{"version":"1.1.0","url":"https://example.com/download","notes":"What's new"}` (or a GitHub latest-release API URL). The app checks once a day and via the tray item "Check for updates".
 - The icon is `app.ico` (also used for the tray).
+
+## Diagnostics and tests
+- Log file: `%AppData%\ScrollShot\log.txt` (tray menu > Open log file). Enable "Save failed frames" in Settings > Scrolling to keep frames of failed stitches in `%AppData%\ScrollShot\debug`.
+- Unit tests: `dotnet test ScrollShot.Tests` (stitcher on synthetic pages with sticky header/footer, GIF/LZW round trip, PDF structure, splitting, JPEG target size, settings, profiles, version parsing).

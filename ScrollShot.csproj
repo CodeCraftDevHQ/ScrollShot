@@ -18,6 +18,13 @@
     <Company>ScrollShot</Company>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="ScrollShot.Tests" />
+    <Compile Remove="ScrollShot.Tests\**" />
+    <EmbeddedResource Remove="ScrollShot.Tests\**" />
+    <None Remove="ScrollShot.Tests\**" />
+    <Page Remove="ScrollShot.Tests\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="app.ico" />
   </ItemGroup>
   <ItemGroup>

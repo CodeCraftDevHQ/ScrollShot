@@ -224,6 +224,19 @@ namespace ScrollShot
         }
         public void DelayedFull() { _ = RunGuarded(() => WithCountdown(() => FullAsync(150))); }
 
+        public void OpenLog()
+        {
+            try
+            {
+                Directory.CreateDirectory(Log.Folder);
+                if (!File.Exists(Log.FilePath)) File.WriteAllText(Log.FilePath, "");
+                Process.Start(new ProcessStartInfo(Log.FilePath) { UseShellExecute = true });
+            }
+            catch
+            {
+            }
+        }
+
         public void OpenFolder()
         {
             try
@@ -259,6 +272,7 @@ namespace ScrollShot
             }
             catch (Exception ex)
             {
+                Log.Error("action", ex);
                 _tray.Balloon(Loc.T("msg_error"), ex.Message, true);
             }
             finally

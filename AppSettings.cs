@@ -188,6 +188,7 @@ namespace ScrollShot
         public int IgnoreLeftPx { get; set; } = 0;
         public int IgnoreRightPx { get; set; } = 20;
         public int MatchTolerance { get; set; } = 6;
+        public bool DebugDumpFrames { get; set; } = false;
 
         public AppSettings Clone()
         {

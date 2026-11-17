@@ -213,6 +213,7 @@ namespace ScrollShot
             }
             catch (Exception ex)
             {
+                Log.Error("scroll loop", ex);
                 endMsg = ex.Message;
             }
             if (_closing)
@@ -265,6 +266,11 @@ namespace ScrollShot
         async Task<StitchResult> AddAsync(D.Bitmap frame)
         {
             var r = await Task.Run(() => _st.Add(frame));
+            if (r == StitchResult.Failed)
+            {
+                Log.Info("stitch failed: frames=" + _st.FrameCount + " height=" + _st.TotalHeight + " region=" + _region + " horizontal=" + _horizontal);
+                if (_s.DebugDumpFrames) Log.DumpFrame(frame, "fail", _st.FrameCount);
+            }
             Status.Text = Loc.F("bar_stats", _st.FrameCount, _st.TotalHeight);
             return r;
         }

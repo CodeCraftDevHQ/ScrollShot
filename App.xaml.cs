@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Windows;
 
@@ -21,9 +22,17 @@ namespace ScrollShot
             }
             DispatcherUnhandledException += (s, a) =>
             {
+                Log.Error("ui", a.Exception);
                 MessageBox.Show(a.Exception.Message, "ScrollShot");
                 a.Handled = true;
             };
+            AppDomain.CurrentDomain.UnhandledException += (s, a) => Log.Error("domain", a.ExceptionObject as Exception);
+            System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (s, a) =>
+            {
+                Log.Error("task", a.Exception);
+                a.SetObserved();
+            };
+            Log.Info("start " + UpdateService.CurrentText);
             var settings = SettingsStore.Load();
             Loc.SetLanguage(settings.Language);
             ThemeService.Apply(settings);

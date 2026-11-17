@@ -189,6 +189,8 @@ namespace ScrollShot
             A("upd_available", "A new version is available: {1} (you have {0}). Open the download page?", "نسخهٔ جدید موجود است: {1} (نسخهٔ شما {0}). صفحهٔ دانلود باز شود؟");
             A("upd_latest", "You have the latest version ({0}).", "آخرین نسخه را دارید ({0}).");
             A("upd_failed", "Update check failed: {0}", "بررسی به‌روزرسانی ناموفق بود: {0}");
+            A("sc_debug", "Save failed frames for diagnosis (AppData\\ScrollShot\\debug)", "ذخیرهٔ فریم‌های ناموفق برای عیب‌یابی (AppData\\ScrollShot\\debug)");
+            A("tray_log", "Open log file", "باز کردن فایل لاگ");
             A("nav_record", "Recording", "ضبط");
             A("sec_record", "Screen recording", "ضبط صفحه");
             A("rec_format", "Format", "فرمت");
