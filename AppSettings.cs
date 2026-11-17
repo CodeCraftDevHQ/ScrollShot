@@ -67,6 +67,9 @@ namespace ScrollShot
         public bool RecordCursor { get; set; } = true;
         public int RecordCountdownSec { get; set; } = 2;
         public string FfmpegPath { get; set; } = "";
+        public string UpdateCheckUrl { get; set; } = "";
+        public bool UpdateAuto { get; set; } = true;
+        public string LastUpdateCheck { get; set; } = "";
 
         public NamedProfile CaptureProfile(string name)
         {
@@ -205,6 +208,8 @@ namespace ScrollShot
             if (RecordHotkey == null) RecordHotkey = new HotkeyDef();
             if (RecordFormat != "gif" && RecordFormat != "mp4") RecordFormat = "gif";
             if (FfmpegPath == null) FfmpegPath = "";
+            if (UpdateCheckUrl == null) UpdateCheckUrl = "";
+            if (LastUpdateCheck == null) LastUpdateCheck = "";
             RecordFps = Math.Clamp(RecordFps, 5, 30);
             RecordMaxSeconds = Math.Clamp(RecordMaxSeconds, 3, 600);
             RecordScalePercent = Math.Clamp(RecordScalePercent, 25, 100);

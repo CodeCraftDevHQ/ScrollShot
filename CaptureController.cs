@@ -33,6 +33,50 @@ namespace ScrollShot
             RegisterHotkeys();
             UpdateFloating();
             ApplyStartup();
+            _ = AutoCheckUpdates();
+        }
+
+        async Task AutoCheckUpdates()
+        {
+            if (!Settings.UpdateAuto || string.IsNullOrWhiteSpace(Settings.UpdateCheckUrl)) return;
+            DateTime last;
+            if (DateTime.TryParse(Settings.LastUpdateCheck, null, System.Globalization.DateTimeStyles.RoundtripKind, out last) && (DateTime.UtcNow - last).TotalHours < 24) return;
+            await Task.Delay(8000);
+            CheckForUpdates(false);
+        }
+
+        public async void CheckForUpdates(bool manual)
+        {
+            string url = Settings.UpdateCheckUrl;
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                if (manual) System.Windows.MessageBox.Show(Loc.T("upd_no_url"), "ScrollShot");
+                return;
+            }
+            try
+            {
+                var info = await UpdateService.CheckAsync(url);
+                Settings.LastUpdateCheck = DateTime.UtcNow.ToString("o");
+                SaveSettings();
+                if (info.IsNewer)
+                {
+                    string msg = Loc.F("upd_available", UpdateService.CurrentText, info.Latest.ToString(3));
+                    if (!string.IsNullOrWhiteSpace(info.Notes)) msg += "\n\n" + info.Notes;
+                    var r = System.Windows.MessageBox.Show(msg, "ScrollShot", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Information);
+                    if (r == System.Windows.MessageBoxResult.Yes && !string.IsNullOrWhiteSpace(info.DownloadUrl))
+                    {
+                        try { Process.Start(new ProcessStartInfo(info.DownloadUrl) { UseShellExecute = true }); } catch { }
+                    }
+                }
+                else if (manual)
+                {
+                    System.Windows.MessageBox.Show(Loc.F("upd_latest", UpdateService.CurrentText), "ScrollShot");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (manual) System.Windows.MessageBox.Show(Loc.F("upd_failed", ex.Message), "ScrollShot");
+            }
         }
 
         public void Apply(AppSettings s)

@@ -177,6 +177,18 @@ namespace ScrollShot
             A("ap_mag_zoom", "Magnifier zoom", "بزرگ‌نمایی ذره‌بین");
             A("mag_hint", "Arrows: 1 px • Shift: 10 px • C: copy color", "کلیدهای جهت‌نما: ۱ پیکسل • Shift: ۱۰ پیکسل • C: کپی رنگ");
             A("mag_copied", "Copied {0}", "کپی شد {0}");
+            A("nav_about", "About & updates", "درباره و به‌روزرسانی");
+            A("sec_about", "About", "درباره");
+            A("upd_version", "ScrollShot version {0}", "نسخهٔ ScrollShot: {0}");
+            A("upd_hint", "Point this to a JSON file such as {\"version\":\"1.1.0\",\"url\":\"https://...\",\"notes\":\"...\"} or a GitHub latest-release API URL.", "آدرس یک فایل JSON مثل {\"version\":\"1.1.0\",\"url\":\"https://...\",\"notes\":\"...\"} یا آدرس API آخرین ریلیز گیت‌هاب را وارد کنید.");
+            A("upd_url", "Update check URL", "آدرس بررسی به‌روزرسانی");
+            A("upd_auto", "Check automatically once a day", "بررسی خودکار روزی یک بار");
+            A("upd_check", "Check now", "بررسی همین الان");
+            A("tray_update", "Check for updates", "بررسی به‌روزرسانی");
+            A("upd_no_url", "Set the update check URL in Settings > About first.", "ابتدا آدرس بررسی به‌روزرسانی را در تنظیمات > درباره وارد کنید.");
+            A("upd_available", "A new version is available: {1} (you have {0}). Open the download page?", "نسخهٔ جدید موجود است: {1} (نسخهٔ شما {0}). صفحهٔ دانلود باز شود؟");
+            A("upd_latest", "You have the latest version ({0}).", "آخرین نسخه را دارید ({0}).");
+            A("upd_failed", "Update check failed: {0}", "بررسی به‌روزرسانی ناموفق بود: {0}");
             A("nav_record", "Recording", "ضبط");
             A("sec_record", "Screen recording", "ضبط صفحه");
             A("rec_format", "Format", "فرمت");

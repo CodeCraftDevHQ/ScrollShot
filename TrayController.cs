@@ -91,6 +91,7 @@ namespace ScrollShot
                 menu.Items.Add(sub);
             }
             menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            Add(menu, "tray_update", () => _ctl.CheckForUpdates(true));
             Add(menu, "tray_folder", () => _ctl.OpenFolder());
             Add(menu, "tray_settings", () => _ctl.OpenSettings());
             menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
@@ -116,6 +117,20 @@ namespace ScrollShot
 
         static Icon BuildIcon()
         {
+            try
+            {
+                var info = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/app.ico"));
+                if (info != null)
+                {
+                    using (var st = info.Stream)
+                    {
+                        return new Icon(st, 32, 32);
+                    }
+                }
+            }
+            catch
+            {
+            }
             using (var bmp = new Bitmap(32, 32))
             using (var g = Graphics.FromImage(bmp))
             {

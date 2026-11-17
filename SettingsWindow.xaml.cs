@@ -22,7 +22,7 @@ namespace ScrollShot
         {
             _ctl = ctl;
             InitializeComponent();
-            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4, Page5, Page6, Page7 };
+            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4, Page5, Page6, Page7, Page8 };
             Load(ctl.Settings.Clone());
             BuildSwatches();
             Nav.SelectedIndex = 0;
@@ -48,6 +48,7 @@ namespace ScrollShot
             HkProfile.Value = _edit.ProfileHotkey;
             HkRegionDelay.Value = _edit.RegionDelayHotkey;
             HkRecord.Value = _edit.RecordHotkey;
+            VersionText.Text = Loc.F("upd_version", UpdateService.CurrentText);
             RefreshProfiles();
         }
 
@@ -193,6 +194,12 @@ namespace ScrollShot
             _saved = true;
             _ctl.Apply(_edit);
             Close();
+        }
+
+        void OnCheckUpdate(object sender, RoutedEventArgs e)
+        {
+            _ctl.Settings.UpdateCheckUrl = _edit.UpdateCheckUrl ?? "";
+            _ctl.CheckForUpdates(true);
         }
 
         void OnCancel(object sender, RoutedEventArgs e)

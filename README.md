@@ -18,3 +18,9 @@ Open `ScrollShot.csproj` in Visual Studio. The `ModernWpfUI` NuGet package is re
 
 ## Settings
 Language (English / Persian), theme (dark / light / follow system), accent color, output format (PNG/JPG/BMP/PDF), size reduction, splitting long images, PDF options, shortcuts, floating button, and scrolling tuning.
+
+## Installer and updates
+- Run `build-installer.ps1` (needs the .NET SDK and Inno Setup 6) to publish a self-contained single-file build and create `installer-output\ScrollShot-Setup-<version>.exe`. Without Inno Setup it only publishes to `publish\`.
+- Bump `<Version>` in `ScrollShot.csproj` for each release.
+- Settings > About: set an update URL pointing to a JSON like `{"version":"1.1.0","url":"https://example.com/download","notes":"What's new"}` (or a GitHub latest-release API URL). The app checks once a day and via the tray item "Check for updates".
+- The icon is `app.ico` (also used for the tray).
