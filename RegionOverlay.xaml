@@ -11,6 +11,21 @@
         <Rectangle x:Name="Sel" Fill="Transparent" IsHitTestVisible="False" Visibility="Collapsed"/>
         <Line x:Name="HLine" Stroke="#99FFFFFF" StrokeThickness="1" IsHitTestVisible="False"/>
         <Line x:Name="VLine" Stroke="#99FFFFFF" StrokeThickness="1" IsHitTestVisible="False"/>
+        <Border x:Name="Loupe" Background="#F2202124" BorderBrush="#FFFFFFFF" BorderThickness="1" CornerRadius="6"
+                Padding="4" Visibility="Collapsed" IsHitTestVisible="False">
+            <StackPanel>
+                <Grid x:Name="LoupeGrid">
+                    <Rectangle x:Name="LoupeView" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                    <Rectangle x:Name="LoupeCenter" Stroke="#FFFFFFFF" StrokeThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Rectangle x:Name="LoupeCenterIn" Stroke="#FF000000" StrokeThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1"/>
+                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <Border x:Name="Swatch" Width="14" Height="14" BorderBrush="#FFFFFFFF" BorderThickness="1" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="LoupeText" Foreground="White" FontSize="12" FontFamily="Consolas"/>
+                </StackPanel>
+                <TextBlock x:Name="LoupeHint" Foreground="#FFB0B0B0" FontSize="10" Margin="0,3,0,0"/>
+            </StackPanel>
+        </Border>
         <Border x:Name="SizeTag" Background="#E6202124" CornerRadius="4" Padding="6,2"
                 Visibility="Collapsed" IsHitTestVisible="False">
             <TextBlock x:Name="SizeText" Foreground="White" FontSize="12"/>

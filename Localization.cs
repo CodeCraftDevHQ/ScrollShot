@@ -173,6 +173,10 @@ namespace ScrollShot
             A("sc_trim_header", "Remove fixed header (sticky top bar) from the result", "حذف هدر ثابت (نوار بالای چسبان) از نتیجه");
             A("sc_trim_footer", "Remove fixed footer (sticky bottom bar) from the result", "حذف فوتر ثابت (نوار پایین چسبان) از نتیجه");
             A("nav_share", "Sharing", "اشتراک‌گذاری");
+            A("ap_mag", "Magnifier with coordinates and color", "ذره‌بین با مختصات و رنگ");
+            A("ap_mag_zoom", "Magnifier zoom", "بزرگ‌نمایی ذره‌بین");
+            A("mag_hint", "Arrows: 1 px • Shift: 10 px • C: copy color", "کلیدهای جهت‌نما: ۱ پیکسل • Shift: ۱۰ پیکسل • C: کپی رنگ");
+            A("mag_copied", "Copied {0}", "کپی شد {0}");
             A("nav_record", "Recording", "ضبط");
             A("sec_record", "Screen recording", "ضبط صفحه");
             A("rec_format", "Format", "فرمت");

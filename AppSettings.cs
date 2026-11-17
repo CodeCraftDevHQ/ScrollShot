@@ -154,6 +154,8 @@ namespace ScrollShot
         public bool ShowSizeLabel { get; set; } = true;
         public bool ShowCrosshair { get; set; } = true;
         public bool HighlightWindows { get; set; } = true;
+        public bool ShowMagnifier { get; set; } = true;
+        public int MagnifierZoom { get; set; } = 10;
         public string FrameColor { get; set; } = "#FFEF4444";
 
         public int ScalePercent { get; set; } = 100;
@@ -228,6 +230,7 @@ namespace ScrollShot
             DelaySeconds = Math.Clamp(DelaySeconds, 0, 30);
             OverlayDim = Math.Clamp(OverlayDim, 0.05, 0.9);
             SelectionThickness = Math.Clamp(SelectionThickness, 1, 8);
+            MagnifierZoom = Math.Clamp(MagnifierZoom, 4, 20);
             ScrollNotches = Math.Clamp(ScrollNotches, 1, 20);
             ScrollCountdownSec = Math.Clamp(ScrollCountdownSec, 0, 10);
             ScrollDelayMs = Math.Clamp(ScrollDelayMs, 100, 5000);

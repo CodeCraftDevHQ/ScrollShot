@@ -22,6 +22,10 @@ namespace ScrollShot
         Point _startPx;
         Point _lastPx;
         D.Rectangle? _hover;
+        System.Windows.Media.Imaging.BitmapSource _bgSource;
+        ImageBrush _loupeBrush;
+        string _lastHex = "";
+        const int LoupeHalf = 7;
 
         public D.Rectangle? Result { get; private set; }
 
@@ -55,7 +59,28 @@ namespace ScrollShot
             Root.Height = _vb.Height / _scale;
             Bg.Width = Root.Width;
             Bg.Height = Root.Height;
-            Bg.Source = ScreenGrab.ToSource(_desktop);
+            _bgSource = ScreenGrab.ToSource(_desktop);
+            Bg.Source = _bgSource;
+            if (_s.ShowMagnifier)
+            {
+                int z = _s.MagnifierZoom;
+                int n = LoupeHalf * 2 + 1;
+                LoupeGrid.Width = n * z;
+                LoupeGrid.Height = n * z;
+                LoupeCenter.Width = z;
+                LoupeCenter.Height = z;
+                LoupeCenterIn.Width = z;
+                LoupeCenterIn.Height = z;
+                _loupeBrush = new ImageBrush(_bgSource)
+                {
+                    ViewboxUnits = BrushMappingMode.Absolute,
+                    ViewportUnits = BrushMappingMode.RelativeToBoundingBox,
+                    Viewport = new Rect(0, 0, 1, 1),
+                    Stretch = Stretch.Fill
+                };
+                LoupeView.Fill = _loupeBrush;
+                LoupeHint.Text = Loc.T("mag_hint");
+            }
             HLine.Visibility = _s.ShowCrosshair ? Visibility.Visible : Visibility.Collapsed;
             VLine.Visibility = _s.ShowCrosshair ? Visibility.Visible : Visibility.Collapsed;
             UpdateVisual(null);
@@ -112,6 +137,56 @@ namespace ScrollShot
             VLine.X2 = x;
         }
 
+        void UpdateLoupe(Point px)
+        {
+            if (!_s.ShowMagnifier || _loupeBrush == null) return;
+            int x = Math.Max(0, Math.Min((int)px.X, _desktop.Width - 1));
+            int y = Math.Max(0, Math.Min((int)px.Y, _desktop.Height - 1));
+            int n = LoupeHalf * 2 + 1;
+            _loupeBrush.Viewbox = new Rect(x - LoupeHalf, y - LoupeHalf, n, n);
+            var c = _desktop.GetPixel(x, y);
+            _lastHex = "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
+            Swatch.Background = new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B));
+            LoupeText.Text = (_vb.X + x) + ", " + (_vb.Y + y) + "  " + _lastHex;
+            Loupe.Visibility = Visibility.Visible;
+            Loupe.UpdateLayout();
+            double w = Loupe.ActualWidth;
+            double h = Loupe.ActualHeight;
+            double cx = px.X / _scale + 24;
+            double cy = px.Y / _scale + 24;
+            if (cx + w > Root.Width) cx = px.X / _scale - w - 24;
+            if (cy + h > Root.Height) cy = px.Y / _scale - h - 24;
+            Canvas.SetLeft(Loupe, Math.Max(0, cx));
+            Canvas.SetTop(Loupe, Math.Max(0, cy));
+        }
+
+        void Nudge(int dx, int dy)
+        {
+            int step = (Keyboard.Modifiers & ModifierKeys.Shift) != 0 ? 10 : 1;
+            var sp = ToScreen(_lastPx);
+            int nx = Math.Max(_vb.X, Math.Min(sp.X + dx * step, _vb.Right - 1));
+            int ny = Math.Max(_vb.Y, Math.Min(sp.Y + dy * step, _vb.Bottom - 1));
+            Native.SetCursorPos(nx, ny);
+            _lastPx = new Point(nx - _vb.X + 0.5, ny - _vb.Y + 0.5);
+            UpdateCross(_lastPx);
+            UpdateLoupe(_lastPx);
+            if (_down && _dragging) UpdateVisual(Norm(_startPx, _lastPx));
+            else RefreshHover();
+        }
+
+        void CopyColor()
+        {
+            if (_lastHex.Length == 0) return;
+            try
+            {
+                Clipboard.SetText(_lastHex);
+                LoupeHint.Text = Loc.F("mag_copied", _lastHex);
+            }
+            catch
+            {
+            }
+        }
+
         void UpdateVisual(D.Rectangle? sel)
         {
             var full = new Rect(0, 0, Root.Width, Root.Height);
@@ -154,6 +229,7 @@ namespace ScrollShot
             var pp = Phys(e);
             _lastPx = pp;
             UpdateCross(pp);
+            UpdateLoupe(pp);
             if (_down)
             {
                 if (!_dragging && !_windowOnly && (Math.Abs(pp.X - _startPx.X) > 4 || Math.Abs(pp.Y - _startPx.Y) > 4))
@@ -215,6 +291,11 @@ namespace ScrollShot
                 Close();
                 return;
             }
+            if (e.Key == Key.Left) { Nudge(-1, 0); e.Handled = true; }
+            else if (e.Key == Key.Right) { Nudge(1, 0); e.Handled = true; }
+            else if (e.Key == Key.Up) { Nudge(0, -1); e.Handled = true; }
+            else if (e.Key == Key.Down) { Nudge(0, 1); e.Handled = true; }
+            else if (e.Key == Key.C && (Keyboard.Modifiers & ModifierKeys.Control) == 0) { CopyColor(); e.Handled = true; }
             if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) RefreshHover();
         }
 
