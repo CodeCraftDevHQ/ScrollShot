@@ -233,9 +233,11 @@ namespace ScrollShot
             try
             {
                 bool horizontal = _horizontal;
+                bool trimH = _s.TrimHeader;
+                bool trimF = _s.TrimFooter;
                 result = await Task.Run(() =>
                 {
-                    var b = _st.Build();
+                    var b = _st.Build(trimH, trimF);
                     if (horizontal) b.RotateFlip(System.Drawing.RotateFlipType.Rotate270FlipNone);
                     return b;
                 });

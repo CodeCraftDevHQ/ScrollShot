@@ -18,6 +18,7 @@ namespace ScrollShot
         readonly List<Bitmap> _strips = new List<Bitmap>();
         Bitmap _footer;
         int _footerRows;
+        int _headerRows;
         bool _footerKnown;
         byte[] _prev;
         int _w;
@@ -90,6 +91,10 @@ namespace ScrollShot
             while (k < max && RowSimilar(_prev, cur, _h - 1 - k)) k++;
             _footerKnown = true;
             _footerRows = k;
+            int hk = 0;
+            int hmax = _h / 4;
+            while (hk < hmax && RowSimilar(_prev, cur, hk)) hk++;
+            _headerRows = hk;
             if (k > 0)
             {
                 var trimmed = Crop(_strips[0], new Rectangle(0, 0, _w, _h - k));
@@ -257,17 +262,29 @@ namespace ScrollShot
 
         public Bitmap Build()
         {
-            var bmp = new Bitmap(_w, _total, PixelFormat.Format32bppRgb);
+            return Build(false, false);
+        }
+
+        public Bitmap Build(bool trimHeader, bool trimFooter)
+        {
+            int skipTop = trimHeader ? Math.Max(0, Math.Min(_headerRows, _strips[0].Height - 1)) : 0;
+            int footerRows = _footer != null ? _footer.Height : 0;
+            int total = _total - skipTop - (trimFooter ? footerRows : 0);
+            if (total < 1) total = _total;
+            var bmp = new Bitmap(_w, total, PixelFormat.Format32bppRgb);
             using (var g = Graphics.FromImage(bmp))
             {
                 g.CompositingMode = CompositingMode.SourceCopy;
                 int y = 0;
-                foreach (var s in _strips)
+                for (int i = 0; i < _strips.Count; i++)
                 {
-                    g.DrawImage(s, new Rectangle(0, y, s.Width, s.Height), 0, 0, s.Width, s.Height, GraphicsUnit.Pixel);
-                    y += s.Height;
+                    var s = _strips[i];
+                    int skip = i == 0 ? skipTop : 0;
+                    int hh = s.Height - skip;
+                    g.DrawImage(s, new Rectangle(0, y, s.Width, hh), 0, skip, s.Width, hh, GraphicsUnit.Pixel);
+                    y += hh;
                 }
-                if (_footer != null)
+                if (_footer != null && !trimFooter)
                 {
                     g.DrawImage(_footer, new Rectangle(0, y, _footer.Width, _footer.Height), 0, 0, _footer.Width, _footer.Height, GraphicsUnit.Pixel);
                 }

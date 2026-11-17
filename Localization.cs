@@ -166,6 +166,9 @@ namespace ScrollShot
             A("tray_profiles", "Profiles", "پروفایل‌ها");
             A("hk_profile", "Switch to next profile", "رفتن به پروفایل بعدی");
             A("msg_profile_applied", "Profile applied: {0}", "پروفایل اعمال شد: {0}");
+            A("sec_sc_trim", "Result cleanup", "پاک‌سازی نتیجه");
+            A("sc_trim_header", "Remove fixed header (sticky top bar) from the result", "حذف هدر ثابت (نوار بالای چسبان) از نتیجه");
+            A("sc_trim_footer", "Remove fixed footer (sticky bottom bar) from the result", "حذف فوتر ثابت (نوار پایین چسبان) از نتیجه");
             A("sc_direction", "Scroll direction", "جهت اسکرول");
             A("dir_vertical", "Vertical", "عمودی");
             A("dir_horizontal", "Horizontal", "افقی");

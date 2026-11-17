@@ -52,7 +52,7 @@ namespace ScrollShot
             "SaveFolder", "FileNamePattern", "Format", "JpgQuality", "SaveToFile", "CopyToClipboard",
             "ScalePercent", "MaxWidthPx", "TargetSizeKB", "SplitEnabled", "SplitHeightPx", "SmartCut",
             "AlsoSavePdf", "PdfPageMode", "PdfPageSize", "PdfMarginMm", "PdfJpegQuality",
-            "ScrollDirection", "ScrollMode", "ScrollFromTop", "ScrollWithoutMouse", "ScrollNotches", "MaxHeightPx"
+            "ScrollDirection", "TrimHeader", "TrimFooter", "ScrollMode", "ScrollFromTop", "ScrollWithoutMouse", "ScrollNotches", "MaxHeightPx"
         };
 
         public List<NamedProfile> Profiles { get; set; }
@@ -153,6 +153,8 @@ namespace ScrollShot
         public int PdfMarginMm { get; set; } = 10;
         public int PdfJpegQuality { get; set; } = 85;
 
+        public bool TrimHeader { get; set; } = false;
+        public bool TrimFooter { get; set; } = false;
         public string ScrollDirection { get; set; } = "vertical";
         public string ScrollMode { get; set; } = "auto";
         public int ScrollCountdownSec { get; set; } = 2;
