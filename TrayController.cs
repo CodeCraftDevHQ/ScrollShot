@@ -63,6 +63,7 @@ namespace ScrollShot
             Add(menu, "tray_window", () => _ctl.WindowCap());
             Add(menu, "tray_full", () => _ctl.Full());
             Add(menu, "tray_scroll", () => _ctl.Scroll());
+            Add(menu, "tray_record", () => _ctl.Record());
             Add(menu, "tray_delayed", () => _ctl.DelayedFull());
             Add(menu, "tray_region_delay", () => _ctl.RegionDelayed());
             Add(menu, "tray_window_delay", () => _ctl.WindowDelayed());

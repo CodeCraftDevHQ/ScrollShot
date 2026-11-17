@@ -17,6 +17,7 @@ namespace ScrollShot
         ToastWindow _toast;
         bool _busy;
         ScrollControlWindow _activeScroll;
+        RecordWindow _activeRecord;
 
         public AppSettings Settings { get; private set; }
 
@@ -97,6 +98,7 @@ namespace ScrollShot
             Reg(Settings.FullScreenHotkey, Loc.T("tray_full"), Full, failed);
             Reg(Settings.ScrollHotkey, Loc.T("tray_scroll"), Scroll, failed);
             Reg(Settings.RegionDelayHotkey, Loc.T("tray_region_delay"), RegionDelayed, failed);
+            Reg(Settings.RecordHotkey, Loc.T("tray_record"), Record, failed);
             Reg(Settings.ProfileHotkey, Loc.T("hk_profile"), CycleProfile, failed);
             if (failed.Count > 0)
             {
@@ -147,6 +149,7 @@ namespace ScrollShot
                 case "window": WindowCap(); break;
                 case "full": Full(); break;
                 case "scroll": Scroll(); break;
+                case "record": Record(); break;
                 case "settings": OpenSettings(); break;
                 default: Region(); break;
             }
@@ -165,6 +168,15 @@ namespace ScrollShot
                 return;
             }
             _ = RunGuarded(ScrollAsync);
+        }
+        public void Record()
+        {
+            if (_activeRecord != null)
+            {
+                _activeRecord.RequestStop();
+                return;
+            }
+            _ = RunGuarded(RecordAsync);
         }
         public void DelayedFull() { _ = RunGuarded(() => WithCountdown(() => FullAsync(150))); }
 
@@ -290,9 +302,43 @@ namespace ScrollShot
             }
         }
 
+        async Task RecordAsync()
+        {
+            await Task.Delay(150);
+            var region = PickRegion(false);
+            if (!region.HasValue) return;
+            await Task.Delay(150);
+            var win = new RecordWindow(region.Value, Settings);
+            _activeRecord = win;
+            int esc = _hk.RegisterTemp(new HotkeyDef(0, 0x1B), () => win.RequestCancel());
+            try
+            {
+                var r = await win.RunAsync();
+                if (r == null) return;
+                if (!string.IsNullOrEmpty(r.Message)) _tray.Balloon(Loc.T("tray_record"), r.Message, r.Path == null);
+                if (r.Path != null)
+                {
+                    var res = new OutputResult();
+                    res.FilePaths.Add(r.Path);
+                    try { res.TotalBytes = new FileInfo(r.Path).Length; } catch { }
+                    ShowResult(res, r.Thumb, r.Width, r.Height);
+                }
+            }
+            finally
+            {
+                if (esc != 0) _hk.Unregister(esc);
+                _activeRecord = null;
+            }
+        }
+
         void Deliver(D.Bitmap bmp, string type)
         {
             var res = OutputService.Process(bmp, Settings, type);
+            ShowResult(res, OutputService.Thumb(bmp, 240, 150), bmp.Width, bmp.Height);
+        }
+
+        void ShowResult(OutputResult res, System.Windows.Media.Imaging.BitmapSource thumb, int width, int height)
+        {
             if (Settings.PlaySound) System.Media.SystemSounds.Asterisk.Play();
             if (Settings.ShowToast)
             {
@@ -301,8 +347,7 @@ namespace ScrollShot
                     _toast.Close();
                     _toast = null;
                 }
-                var thumb = OutputService.Thumb(bmp, 240, 150);
-                var t = new ToastWindow(res, thumb, Settings.ToastSeconds, bmp.Width, bmp.Height, this);
+                var t = new ToastWindow(res, thumb, Settings.ToastSeconds, width, height, this);
                 t.Closed += (a, b) =>
                 {
                     if (_toast == t) _toast = null;

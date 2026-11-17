@@ -47,6 +47,37 @@ namespace ScrollShot
             return bmp;
         }
 
+        public static void DrawCursor(Bitmap bmp, Rectangle area)
+        {
+            var ci = new Native.CURSORINFO { cbSize = Marshal.SizeOf(typeof(Native.CURSORINFO)) };
+            if (!Native.GetCursorInfo(ref ci) || (ci.flags & 1) == 0 || ci.hCursor == IntPtr.Zero) return;
+            int hx = 0;
+            int hy = 0;
+            Native.ICONINFO ii;
+            if (Native.GetIconInfo(ci.hCursor, out ii))
+            {
+                hx = ii.xHotspot;
+                hy = ii.yHotspot;
+                if (ii.hbmMask != IntPtr.Zero) Native.DeleteObject(ii.hbmMask);
+                if (ii.hbmColor != IntPtr.Zero) Native.DeleteObject(ii.hbmColor);
+            }
+            int x = ci.ptScreenPos.X - hx - area.X;
+            int y = ci.ptScreenPos.Y - hy - area.Y;
+            if (x > bmp.Width || y > bmp.Height || x < -128 || y < -128) return;
+            using (var g = Graphics.FromImage(bmp))
+            {
+                IntPtr dc = g.GetHdc();
+                try
+                {
+                    Native.DrawIconEx(dc, x, y, ci.hCursor, 0, 0, 0, IntPtr.Zero, 3);
+                }
+                finally
+                {
+                    g.ReleaseHdc(dc);
+                }
+            }
+        }
+
         public static Bitmap Crop(Bitmap src, Rectangle r)
         {
             return src.Clone(r, src.PixelFormat);

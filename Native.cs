@@ -48,6 +48,25 @@ namespace ScrollShot
             public MOUSEINPUT mi;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct CURSORINFO
+        {
+            public int cbSize;
+            public int flags;
+            public IntPtr hCursor;
+            public POINT ptScreenPos;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ICONINFO
+        {
+            public bool fIcon;
+            public int xHotspot;
+            public int yHotspot;
+            public IntPtr hbmMask;
+            public IntPtr hbmColor;
+        }
+
         public delegate bool EnumWindowsProc(IntPtr h, IntPtr l);
 
         [DllImport("user32.dll")] public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint mods, uint vk);
@@ -74,6 +93,11 @@ namespace ScrollShot
         [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr h);
         [DllImport("user32.dll")] public static extern int ReleaseDC(IntPtr h, IntPtr dc);
         [DllImport("gdi32.dll")] public static extern bool BitBlt(IntPtr dest, int x, int y, int w, int h, IntPtr src, int sx, int sy, uint rop);
+
+        [DllImport("user32.dll")] public static extern bool GetCursorInfo(ref CURSORINFO ci);
+        [DllImport("user32.dll")] public static extern bool GetIconInfo(IntPtr icon, out ICONINFO info);
+        [DllImport("user32.dll")] public static extern bool DrawIconEx(IntPtr dc, int x, int y, IntPtr icon, int w, int h, uint step, IntPtr brush, uint flags);
+        [DllImport("gdi32.dll")] public static extern bool DeleteObject(IntPtr obj);
 
         [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr h, uint msg, IntPtr w, IntPtr l);
 

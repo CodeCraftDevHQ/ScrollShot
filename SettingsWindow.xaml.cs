@@ -22,7 +22,7 @@ namespace ScrollShot
         {
             _ctl = ctl;
             InitializeComponent();
-            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4, Page5, Page6 };
+            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4, Page5, Page6, Page7 };
             Load(ctl.Settings.Clone());
             BuildSwatches();
             Nav.SelectedIndex = 0;
@@ -47,6 +47,7 @@ namespace ScrollShot
             HkScroll.Value = _edit.ScrollHotkey;
             HkProfile.Value = _edit.ProfileHotkey;
             HkRegionDelay.Value = _edit.RegionDelayHotkey;
+            HkRecord.Value = _edit.RecordHotkey;
             RefreshProfiles();
         }
 
@@ -186,6 +187,7 @@ namespace ScrollShot
             _edit.ScrollHotkey = HkScroll.Value ?? new HotkeyDef();
             _edit.ProfileHotkey = HkProfile.Value ?? new HotkeyDef();
             _edit.RegionDelayHotkey = HkRegionDelay.Value ?? new HotkeyDef();
+            _edit.RecordHotkey = HkRecord.Value ?? new HotkeyDef();
             _edit.FloatingX = _ctl.Settings.FloatingX;
             _edit.FloatingY = _ctl.Settings.FloatingY;
             _saved = true;

@@ -102,6 +102,7 @@ namespace ScrollShot
             AddItem(m, Loc.T("tray_full"), _ctl.Full);
             AddItem(m, Loc.T("tray_region_delay"), _ctl.RegionDelayed);
             AddItem(m, Loc.T("tray_scroll"), _ctl.Scroll);
+            AddItem(m, Loc.T("tray_record"), _ctl.Record);
             var profiles = _ctl.Settings.Profiles;
             if (profiles != null && profiles.Count > 0)
             {

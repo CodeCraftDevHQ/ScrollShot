@@ -59,6 +59,14 @@ namespace ScrollShot
         public string ActiveProfile { get; set; } = "";
         public HotkeyDef ProfileHotkey { get; set; } = new HotkeyDef();
         public HotkeyDef RegionDelayHotkey { get; set; } = new HotkeyDef();
+        public HotkeyDef RecordHotkey { get; set; } = new HotkeyDef(Native.MOD_CONTROL | Native.MOD_SHIFT, 0x35);
+        public string RecordFormat { get; set; } = "gif";
+        public int RecordFps { get; set; } = 10;
+        public int RecordMaxSeconds { get; set; } = 60;
+        public int RecordScalePercent { get; set; } = 100;
+        public bool RecordCursor { get; set; } = true;
+        public int RecordCountdownSec { get; set; } = 2;
+        public string FfmpegPath { get; set; } = "";
 
         public NamedProfile CaptureProfile(string name)
         {
@@ -192,6 +200,13 @@ namespace ScrollShot
             if (UploadResponseRegex == null) UploadResponseRegex = "";
             if (ProfileHotkey == null) ProfileHotkey = new HotkeyDef();
             if (RegionDelayHotkey == null) RegionDelayHotkey = new HotkeyDef();
+            if (RecordHotkey == null) RecordHotkey = new HotkeyDef();
+            if (RecordFormat != "gif" && RecordFormat != "mp4") RecordFormat = "gif";
+            if (FfmpegPath == null) FfmpegPath = "";
+            RecordFps = Math.Clamp(RecordFps, 5, 30);
+            RecordMaxSeconds = Math.Clamp(RecordMaxSeconds, 3, 600);
+            RecordScalePercent = Math.Clamp(RecordScalePercent, 25, 100);
+            RecordCountdownSec = Math.Clamp(RecordCountdownSec, 0, 10);
             if (string.IsNullOrWhiteSpace(SaveFolder)) SaveFolder = new AppSettings().SaveFolder;
             if (string.IsNullOrWhiteSpace(FileNamePattern)) FileNamePattern = "Screenshot_{date}_{time}";
             if (Language != "en" && Language != "fa") Language = "en";

@@ -53,8 +53,9 @@ namespace ScrollShot
             return res;
         }
 
-        static string UniqueBase(AppSettings s, string type)
+        internal static string ReserveBase(AppSettings s, string type)
         {
+            Directory.CreateDirectory(s.SaveFolder);
             var now = DateTime.Now;
             string name = s.FileNamePattern
                 .Replace("{date}", now.ToString("yyyy-MM-dd"))
@@ -71,7 +72,7 @@ namespace ScrollShot
         static void SaveAll(Bitmap work, AppSettings s, string type, OutputResult res)
         {
             Directory.CreateDirectory(s.SaveFolder);
-            string baseName = UniqueBase(s, type);
+            string baseName = ReserveBase(s, type);
             string fmt = s.Format;
 
             if (fmt == "pdf")
