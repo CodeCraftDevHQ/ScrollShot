@@ -117,7 +117,10 @@ namespace ScrollShot
             A("gen_full_scope", "Full screen from", "تمام صفحه از");
             A("scope_cursor", "The monitor under the mouse", "مانیتوری که ماوس روی آن است");
             A("scope_all", "All monitors", "همه مانیتورها");
-            A("gen_delay", "Capture delay (seconds)", "تأخیر گرفتن (ثانیه)");
+            A("gen_delay", "Delay for delayed captures (seconds)", "تأخیر در گرفتن‌های تأخیری (ثانیه)");
+            A("tray_region_delay", "Region with delay", "ناحیه با تأخیر");
+            A("tray_window_delay", "Window with delay", "پنجره با تأخیر");
+            A("hk_region_delay", "Region with delay", "ناحیه با تأخیر");
 
             A("sec_size", "Reduce file size", "کاهش حجم");
             A("out_scale", "Image scale (%)", "مقیاس تصویر (٪)");

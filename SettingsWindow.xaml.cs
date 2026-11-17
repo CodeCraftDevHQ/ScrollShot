@@ -46,6 +46,7 @@ namespace ScrollShot
             HkFull.Value = _edit.FullScreenHotkey;
             HkScroll.Value = _edit.ScrollHotkey;
             HkProfile.Value = _edit.ProfileHotkey;
+            HkRegionDelay.Value = _edit.RegionDelayHotkey;
             RefreshProfiles();
         }
 
@@ -184,6 +185,7 @@ namespace ScrollShot
             _edit.FullScreenHotkey = HkFull.Value ?? new HotkeyDef();
             _edit.ScrollHotkey = HkScroll.Value ?? new HotkeyDef();
             _edit.ProfileHotkey = HkProfile.Value ?? new HotkeyDef();
+            _edit.RegionDelayHotkey = HkRegionDelay.Value ?? new HotkeyDef();
             _edit.FloatingX = _ctl.Settings.FloatingX;
             _edit.FloatingY = _ctl.Settings.FloatingY;
             _saved = true;

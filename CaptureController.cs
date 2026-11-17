@@ -75,6 +75,7 @@ namespace ScrollShot
             Reg(Settings.WindowHotkey, Loc.T("tray_window"), WindowCap, failed);
             Reg(Settings.FullScreenHotkey, Loc.T("tray_full"), Full, failed);
             Reg(Settings.ScrollHotkey, Loc.T("tray_scroll"), Scroll, failed);
+            Reg(Settings.RegionDelayHotkey, Loc.T("tray_region_delay"), RegionDelayed, failed);
             Reg(Settings.ProfileHotkey, Loc.T("hk_profile"), CycleProfile, failed);
             if (failed.Count > 0)
             {
@@ -130,8 +131,10 @@ namespace ScrollShot
             }
         }
 
-        public void Region() { _ = RunGuarded(() => RegionAsync(false)); }
-        public void WindowCap() { _ = RunGuarded(() => RegionAsync(true)); }
+        public void Region() { _ = RunGuarded(() => RegionAsync(false, 150)); }
+        public void RegionDelayed() { _ = RunGuarded(() => WithCountdown(() => RegionAsync(false, 150))); }
+        public void WindowDelayed() { _ = RunGuarded(() => WithCountdown(() => RegionAsync(true, 150))); }
+        public void WindowCap() { _ = RunGuarded(() => RegionAsync(true, 150)); }
         public void Full() { _ = RunGuarded(() => FullAsync(150)); }
         public void Scroll()
         {
@@ -142,7 +145,7 @@ namespace ScrollShot
             }
             _ = RunGuarded(ScrollAsync);
         }
-        public void DelayedFull() { _ = RunGuarded(() => FullAsync(Settings.DelaySeconds * 1000)); }
+        public void DelayedFull() { _ = RunGuarded(() => WithCountdown(() => FullAsync(150))); }
 
         public void OpenFolder()
         {
@@ -199,9 +202,20 @@ namespace ScrollShot
             }
         }
 
-        async Task RegionAsync(bool windowOnly)
+        async Task WithCountdown(Func<Task> next)
         {
-            await Task.Delay(150);
+            int sec = Settings.DelaySeconds;
+            if (sec > 0)
+            {
+                var w = new CountdownWindow();
+                await w.RunAsync(sec);
+            }
+            await next();
+        }
+
+        async Task RegionAsync(bool windowOnly, int delayMs)
+        {
+            await Task.Delay(delayMs);
             var vb = ScreenGrab.VirtualBounds();
             using (var desktop = ScreenGrab.Capture(vb))
             {

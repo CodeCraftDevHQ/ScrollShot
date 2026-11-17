@@ -58,6 +58,7 @@ namespace ScrollShot
         public List<NamedProfile> Profiles { get; set; }
         public string ActiveProfile { get; set; } = "";
         public HotkeyDef ProfileHotkey { get; set; } = new HotkeyDef();
+        public HotkeyDef RegionDelayHotkey { get; set; } = new HotkeyDef();
 
         public NamedProfile CaptureProfile(string name)
         {
@@ -179,6 +180,7 @@ namespace ScrollShot
             if (Profiles == null) SeedProfiles();
             if (ActiveProfile == null) ActiveProfile = "";
             if (ProfileHotkey == null) ProfileHotkey = new HotkeyDef();
+            if (RegionDelayHotkey == null) RegionDelayHotkey = new HotkeyDef();
             if (string.IsNullOrWhiteSpace(SaveFolder)) SaveFolder = new AppSettings().SaveFolder;
             if (string.IsNullOrWhiteSpace(FileNamePattern)) FileNamePattern = "Screenshot_{date}_{time}";
             if (Language != "en" && Language != "fa") Language = "en";
