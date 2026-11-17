@@ -29,10 +29,14 @@ namespace ScrollShot
         public int TotalHeight { get { return _total; } }
         public bool LimitReached { get { return _total >= _maxHeight; } }
 
-        public ScrollStitcher(AppSettings s)
+        public ScrollStitcher(AppSettings s) : this(s, false)
         {
-            _ignoreLeft = s.IgnoreLeftPx;
-            _ignoreRight = s.IgnoreRightPx;
+        }
+
+        public ScrollStitcher(AppSettings s, bool horizontal)
+        {
+            _ignoreLeft = horizontal ? s.IgnoreRightPx : s.IgnoreLeftPx;
+            _ignoreRight = horizontal ? s.IgnoreLeftPx : s.IgnoreRightPx;
             _tol = s.MatchTolerance;
             _maxHeight = s.MaxHeightPx;
         }

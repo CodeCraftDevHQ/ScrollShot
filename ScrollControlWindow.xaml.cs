@@ -14,7 +14,8 @@ namespace ScrollShot
     {
         readonly D.Rectangle _region;
         readonly AppSettings _s;
-        readonly ScrollStitcher _st;
+        ScrollStitcher _st;
+        bool _horizontal;
         readonly TaskCompletionSource<D.Bitmap> _tcs = new TaskCompletionSource<D.Bitmap>();
         ScrollFrameWindow _frame;
         CancellationTokenSource _cts;
@@ -31,8 +32,11 @@ namespace ScrollShot
         {
             _region = region;
             _s = s;
-            _st = new ScrollStitcher(s);
+            _horizontal = s.ScrollDirection == "horizontal";
+            _st = new ScrollStitcher(s, _horizontal);
             InitializeComponent();
+            RbV.IsChecked = !_horizontal;
+            RbH.IsChecked = _horizontal;
             ChkTop.IsChecked = s.ScrollFromTop;
             var accent = TryFindResource("AccentButtonStyle") as Style;
             if (s.ScrollMode == "manual")
@@ -150,6 +154,18 @@ namespace ScrollShot
             SettingsStore.Save(_s);
         }
 
+        void OnDirChanged(object sender, RoutedEventArgs e)
+        {
+            if (_st == null || _running) return;
+            bool h = RbH.IsChecked == true;
+            if (h == _horizontal) return;
+            _horizontal = h;
+            _st.Dispose();
+            _st = new ScrollStitcher(_s, _horizontal);
+            _s.ScrollDirection = h ? "horizontal" : "vertical";
+            SettingsStore.Save(_s);
+        }
+
         void OnAuto(object sender, RoutedEventArgs e) { StartMode(true); }
         void OnManual(object sender, RoutedEventArgs e) { StartMode(false); }
 
@@ -181,6 +197,8 @@ namespace ScrollShot
             BtnAuto.IsEnabled = false;
             BtnManual.IsEnabled = false;
             ChkTop.IsEnabled = false;
+            RbV.IsEnabled = false;
+            RbH.IsEnabled = false;
             BtnDone.IsEnabled = true;
             Bar.Visibility = Visibility.Visible;
             Bar.IsIndeterminate = true;
@@ -214,7 +232,13 @@ namespace ScrollShot
             D.Bitmap result = null;
             try
             {
-                result = await Task.Run(() => _st.Build());
+                bool horizontal = _horizontal;
+                result = await Task.Run(() =>
+                {
+                    var b = _st.Build();
+                    if (horizontal) b.RotateFlip(System.Drawing.RotateFlipType.Rotate270FlipNone);
+                    return b;
+                });
             }
             catch (Exception ex)
             {
@@ -227,7 +251,13 @@ namespace ScrollShot
 
         Task<D.Bitmap> GrabAsync()
         {
-            return Task.Run(() => ScreenGrab.Capture(_region));
+            bool horizontal = _horizontal;
+            return Task.Run(() =>
+            {
+                var b = ScreenGrab.Capture(_region);
+                if (horizontal) b.RotateFlip(System.Drawing.RotateFlipType.Rotate90FlipNone);
+                return b;
+            });
         }
 
         async Task<StitchResult> AddAsync(D.Bitmap frame)
@@ -261,14 +291,20 @@ namespace ScrollShot
 
         void Wheel(int notches, int cx, int cy)
         {
+            int dir = _horizontal ? -1 : 1;
             if (_useMsg && _target != IntPtr.Zero)
             {
                 int sign = notches < 0 ? -1 : 1;
-                for (int i = 0; i < Math.Abs(notches); i++) Native.PostWheel(_target, sign * 120, cx, cy);
+                for (int i = 0; i < Math.Abs(notches); i++)
+                {
+                    if (_horizontal) Native.PostHWheel(_target, dir * sign * 120, cx, cy);
+                    else Native.PostWheel(_target, sign * 120, cx, cy);
+                }
                 return;
             }
             Native.SetCursorPos(cx, cy);
-            Native.SendWheel(120 * notches);
+            if (_horizontal) Native.SendHWheel(dir * 120 * notches);
+            else Native.SendWheel(120 * notches);
         }
 
         async Task ScrollToTopAsync(CancellationToken ct, int cx, int cy)
@@ -332,7 +368,8 @@ namespace ScrollShot
                 {
                     noChange = 0;
                     failed = 0;
-                    double ratio = 0.5 * _region.Height / Math.Max(1, _st.LastShift);
+                    double axis = _horizontal ? _region.Width : _region.Height;
+                    double ratio = 0.5 * axis / Math.Max(1, _st.LastShift);
                     notches = Math.Max(1, Math.Min(40, notches * Math.Max(0.6, Math.Min(1.6, ratio))));
                 }
                 else if (r == StitchResult.NoChange)

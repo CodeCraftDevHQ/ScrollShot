@@ -84,6 +84,23 @@ namespace ScrollShot
             PostMessage(target, 0x020A, wp, lp);
         }
 
+        public static void PostHWheel(IntPtr target, int delta, int x, int y)
+        {
+            IntPtr wp = new IntPtr(unchecked((int)((uint)(delta & 0xFFFF) << 16)));
+            IntPtr lp = new IntPtr(unchecked((int)(((uint)y << 16) | ((uint)x & 0xFFFF))));
+            PostMessage(target, 0x020E, wp, lp);
+        }
+
+        public static void SendHWheel(int delta)
+        {
+            var input = new INPUT
+            {
+                type = 0,
+                mi = new MOUSEINPUT { mouseData = unchecked((uint)delta), dwFlags = 0x1000 }
+            };
+            SendInput(1, new[] { input }, Marshal.SizeOf(typeof(INPUT)));
+        }
+
         public static void SendWheel(int delta)
         {
             var input = new INPUT

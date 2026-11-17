@@ -90,6 +90,7 @@ namespace ScrollShot
         public int PdfMarginMm { get; set; } = 10;
         public int PdfJpegQuality { get; set; } = 85;
 
+        public string ScrollDirection { get; set; } = "vertical";
         public string ScrollMode { get; set; } = "auto";
         public int ScrollCountdownSec { get; set; } = 2;
         public bool ScrollFromTop { get; set; } = false;
@@ -140,6 +141,7 @@ namespace ScrollShot
             IgnoreLeftPx = Math.Clamp(IgnoreLeftPx, 0, 200);
             IgnoreRightPx = Math.Clamp(IgnoreRightPx, 0, 200);
             MatchTolerance = Math.Clamp(MatchTolerance, 1, 30);
+            if (ScrollDirection != "vertical" && ScrollDirection != "horizontal") ScrollDirection = "vertical";
             if (ScrollMode != "auto" && ScrollMode != "manual") ScrollMode = "auto";
             if (FullScreenScope != "cursor" && FullScreenScope != "all") FullScreenScope = "cursor";
             if (RegionHotkey == null) RegionHotkey = new HotkeyDef();

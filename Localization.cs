@@ -156,6 +156,9 @@ namespace ScrollShot
             A("fl_opacity", "Button opacity", "شفافیت دکمه");
 
             A("sec_sc_start", "Starting", "شروع");
+            A("sc_direction", "Scroll direction", "جهت اسکرول");
+            A("dir_vertical", "Vertical", "عمودی");
+            A("dir_horizontal", "Horizontal", "افقی");
             A("sc_mode", "Default mode", "حالت پیش‌فرض");
             A("mode_auto", "Automatic", "خودکار");
             A("mode_manual", "Manual", "دستی");
