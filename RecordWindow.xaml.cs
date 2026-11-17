@@ -72,7 +72,7 @@ namespace ScrollShot
             };
         }
 
-        public Task<RecordResult> RunAsync()
+        internal Task<RecordResult> RunAsync()
         {
             _frame = new ScrollFrameWindow(_region, "#FFEF4444");
             _frame.Show();
