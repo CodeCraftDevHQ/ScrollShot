@@ -13,10 +13,13 @@ namespace ScrollShot
     {
         readonly OutputResult _res;
         readonly DispatcherTimer _timer;
+        readonly CaptureController _ctl;
+        bool _menuOpen;
 
-        internal ToastWindow(OutputResult res, System.Windows.Media.Imaging.BitmapSource thumb, int seconds, int width, int height)
+        internal ToastWindow(OutputResult res, System.Windows.Media.Imaging.BitmapSource thumb, int seconds, int width, int height, CaptureController ctl)
         {
             _res = res;
+            _ctl = ctl;
             InitializeComponent();
             Thumb.Source = thumb;
             bool saved = res.FilePath != null;
@@ -34,12 +37,16 @@ namespace ScrollShot
                 BtnOpen.Visibility = Visibility.Collapsed;
                 BtnFolder.Visibility = Visibility.Collapsed;
                 BtnDelete.Visibility = Visibility.Collapsed;
+                BtnShare.Visibility = Visibility.Collapsed;
             }
             if (saved && res.Copied) Sub.Text += " • " + Loc.T("toast_copied_suffix");
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(seconds) };
             _timer.Tick += (a, b) => Close();
             MouseEnter += (a, b) => _timer.Stop();
-            MouseLeave += (a, b) => _timer.Start();
+            MouseLeave += (a, b) =>
+            {
+                if (!_menuOpen) _timer.Start();
+            };
             Loaded += OnLoaded;
         }
 
@@ -80,6 +87,42 @@ namespace ScrollShot
                 try { File.Delete(f); } catch { }
             }
             Close();
+        }
+
+        void OnShare(object sender, RoutedEventArgs e)
+        {
+            string path = _res.FilePath;
+            if (path == null) return;
+            var m = new System.Windows.Controls.ContextMenu
+            {
+                FlowDirection = Loc.Flow,
+                PlacementTarget = BtnShare
+            };
+            AddItem(m, Loc.T("sh_copy_path"), () => ShareService.CopyText(path));
+            AddItem(m, Loc.T("sh_copy_file"), () => ShareService.CopyFile(path));
+            AddItem(m, Loc.T("sh_open_with"), () =>
+            {
+                try { ShareService.OpenWith(path, _ctl.Settings); } catch (Exception ex) { _ctl.Notify(Loc.T("msg_error"), ex.Message, true); }
+            });
+            if (!string.IsNullOrWhiteSpace(_ctl.Settings.UploadUrl))
+            {
+                AddItem(m, Loc.T("sh_upload"), () => { _ = _ctl.UploadAndNotify(path); });
+            }
+            _menuOpen = true;
+            _timer.Stop();
+            m.Closed += (a, b) =>
+            {
+                _menuOpen = false;
+                _timer.Start();
+            };
+            m.IsOpen = true;
+        }
+
+        static void AddItem(System.Windows.Controls.ContextMenu m, string header, Action action)
+        {
+            var item = new System.Windows.Controls.MenuItem { Header = header };
+            item.Click += (a, b) => action();
+            m.Items.Add(item);
         }
 
         void OnClose(object sender, RoutedEventArgs e)

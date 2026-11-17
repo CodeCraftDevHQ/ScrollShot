@@ -46,6 +46,27 @@ namespace ScrollShot
             _tray.Rebuild();
         }
 
+        public void Notify(string title, string text, bool warning)
+        {
+            _tray.Balloon(title, text, warning);
+        }
+
+        public async Task UploadAndNotify(string path)
+        {
+            if (string.IsNullOrWhiteSpace(Settings.UploadUrl)) return;
+            Notify(Loc.T("btn_share"), Loc.T("msg_uploading"), false);
+            try
+            {
+                string url = await ShareService.UploadAsync(path, Settings);
+                ShareService.CopyText(url);
+                Notify(Loc.T("btn_share"), Loc.T("msg_upload_done") + "\n" + url, false);
+            }
+            catch (Exception ex)
+            {
+                Notify(Loc.T("btn_share"), Loc.F("msg_upload_fail", ex.Message), true);
+            }
+        }
+
         public void ApplyProfile(string name)
         {
             var s = Settings.Clone();
@@ -281,7 +302,7 @@ namespace ScrollShot
                     _toast = null;
                 }
                 var thumb = OutputService.Thumb(bmp, 240, 150);
-                var t = new ToastWindow(res, thumb, Settings.ToastSeconds, bmp.Width, bmp.Height);
+                var t = new ToastWindow(res, thumb, Settings.ToastSeconds, bmp.Width, bmp.Height, this);
                 t.Closed += (a, b) =>
                 {
                     if (_toast == t) _toast = null;
@@ -292,6 +313,10 @@ namespace ScrollShot
             else if (res.Error != null)
             {
                 _tray.Balloon(Loc.T("msg_save_error"), res.Error, true);
+            }
+            if (Settings.UploadAuto && res.FilePath != null && !string.IsNullOrWhiteSpace(Settings.UploadUrl))
+            {
+                _ = UploadAndNotify(res.FilePath);
             }
         }
     }

@@ -22,7 +22,7 @@ namespace ScrollShot
         {
             _ctl = ctl;
             InitializeComponent();
-            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4, Page5 };
+            _pages = new FrameworkElement[] { Page0, Page1, Page2, Page3, Page4, Page5, Page6 };
             Load(ctl.Settings.Clone());
             BuildSwatches();
             Nav.SelectedIndex = 0;

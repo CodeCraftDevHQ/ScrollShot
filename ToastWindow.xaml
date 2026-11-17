@@ -25,6 +25,7 @@
                 <Button x:Name="BtnOpen" Content="{local:Loc btn_open}" Click="OnOpen" Margin="0,0,6,0" Padding="10,4"
                         Style="{StaticResource AccentButtonStyle}"/>
                 <Button x:Name="BtnFolder" Content="{local:Loc btn_folder}" Click="OnFolder" Margin="0,0,6,0" Padding="10,4"/>
+                <Button x:Name="BtnShare" Content="{local:Loc btn_share}" Click="OnShare" Margin="0,0,6,0" Padding="10,4"/>
                 <Button x:Name="BtnDelete" Content="{local:Loc btn_delete}" Click="OnDelete" Margin="0,0,6,0" Padding="10,4"/>
                 <Button Content="{local:Loc btn_close}" Click="OnClose" Padding="10,4"/>
             </StackPanel>

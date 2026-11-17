@@ -109,6 +109,12 @@ namespace ScrollShot
         public string Language { get; set; } = "en";
         public string Theme { get; set; } = "dark";
         public string AccentColor { get; set; } = "#FF3B82F6";
+        public string EditorPath { get; set; } = "";
+        public string UploadUrl { get; set; } = "";
+        public string UploadFileField { get; set; } = "file";
+        public string UploadHeader { get; set; } = "";
+        public string UploadResponseRegex { get; set; } = "";
+        public bool UploadAuto { get; set; } = false;
         public string FileNamePattern { get; set; } = "Screenshot_{date}_{time}";
         public string Format { get; set; } = "png";
         public int JpgQuality { get; set; } = 92;
@@ -179,6 +185,11 @@ namespace ScrollShot
         {
             if (Profiles == null) SeedProfiles();
             if (ActiveProfile == null) ActiveProfile = "";
+            if (EditorPath == null) EditorPath = "";
+            if (UploadUrl == null) UploadUrl = "";
+            if (string.IsNullOrWhiteSpace(UploadFileField)) UploadFileField = "file";
+            if (UploadHeader == null) UploadHeader = "";
+            if (UploadResponseRegex == null) UploadResponseRegex = "";
             if (ProfileHotkey == null) ProfileHotkey = new HotkeyDef();
             if (RegionDelayHotkey == null) RegionDelayHotkey = new HotkeyDef();
             if (string.IsNullOrWhiteSpace(SaveFolder)) SaveFolder = new AppSettings().SaveFolder;
